@@ -49,6 +49,7 @@ pipeline:
                     command: |-
                       ls -larth
                       ls -larth ./target
+                      ls -larth
               - step:
                   type: OsvScanner
                   name: OsvScanner_1
