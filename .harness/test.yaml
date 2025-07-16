@@ -1,0 +1,42 @@
+pipeline:
+  name: test
+  identifier: test
+  projectIdentifier: tanayssto
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: tanays
+        repoName: WebGoat
+        build: <+input>
+  stages:
+    - stage:
+        name: build
+        identifier: build
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: false
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run_1
+                  identifier: Run_1
+                  spec:
+                    connectorRef: Dockertanays
+                    image: maven:3.9.9-amazoncorretto-23-debian
+                    shell: Sh
+                    command: mvn clean package  -Dmaven.test.skip=true
