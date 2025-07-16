@@ -40,6 +40,15 @@ pipeline:
                     image: maven:3.9.9-amazoncorretto-23-debian
                     shell: Sh
                     command: mvn clean package  -Dmaven.test.skip=true
+              - step:
+                  type: Run
+                  name: Run_2
+                  identifier: Run_2
+                  spec:
+                    shell: Sh
+                    command: |-
+                      ls -larth
+                      ls -larth ./target
               - parallel:
                   - step:
                       type: Owasp
