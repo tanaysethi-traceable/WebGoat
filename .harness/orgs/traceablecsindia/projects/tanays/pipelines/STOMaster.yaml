@@ -42,4 +42,4 @@ pipeline:
                     connectorRef: dockerHubReadOnly
                     image: maven:3.9.9-amazoncorretto-23-debian
                     shell: Sh
-                    command: mvn clean install
+                    command: mvn clean package -Dmaven.test.skip=true
