@@ -145,37 +145,38 @@ pipeline:
                     image: alpine
                     shell: Sh
                     command: ls -larth
-              - step:
-                  type: Checkov
-                  name: Checkov
-                  identifier: Checkov
-                  spec:
-                    mode: orchestration
-                    config: default
-                    target:
-                      type: repository
-                      detection: auto
-                    advanced:
-                      log:
-                        level: info
-              - step:
-                  type: Grype
-                  name: Grype_1
-                  identifier: Grype_1
-                  spec:
-                    mode: orchestration
-                    config: default
-                    target:
-                      type: container
-                      detection: auto
-                    advanced:
-                      log:
-                        level: info
-                    privileged: true
-                    image:
-                      type: harness
-                      registry: tanays
-                      image_path: webgoat
+              - parallel:
+                  - step:
+                      type: Checkov
+                      name: Checkov
+                      identifier: Checkov
+                      spec:
+                        mode: orchestration
+                        config: default
+                        target:
+                          type: repository
+                          detection: auto
+                        advanced:
+                          log:
+                            level: info
+                  - step:
+                      type: Grype
+                      name: Grype_1
+                      identifier: Grype_1
+                      spec:
+                        mode: orchestration
+                        config: default
+                        target:
+                          type: container
+                          detection: auto
+                        advanced:
+                          log:
+                            level: info
+                        privileged: true
+                        image:
+                          type: harness
+                          registry: tanays
+                          image_path: webgoat
     - stage:
         name: DAST
         identifier: DAST
