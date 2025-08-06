@@ -78,6 +78,10 @@ pipeline:
                               advanced:
                                 log:
                                   level: info
+                              resources:
+                                limits:
+                                  memory: 3G
+                                  cpu: "3"
                         - step:
                             type: Bandit
                             name: Bandit_1
