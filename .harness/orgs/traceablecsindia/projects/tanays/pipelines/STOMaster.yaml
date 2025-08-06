@@ -145,3 +145,104 @@ pipeline:
                     image: alpine
                     shell: Sh
                     command: ls -larth
+              - step:
+                  type: Checkov
+                  name: Checkov
+                  identifier: Checkov
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: repository
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+    - stage:
+        name: DAST
+        identifier: DAST
+        description: ""
+        type: SecurityTests
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: true
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            useFromStage: Build
+          execution:
+            steps:
+              - step:
+                  type: Zap
+                  name: ZAP
+                  identifier: ZAP
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: instance
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+                    instance:
+                      domain: http://ec2-13-235-216-127.ap-south-1.compute.amazonaws.com:8881
+                      protocol: http
+              - step:
+                  type: Traceable
+                  name: Traceable
+                  identifier: Traceable
+                  spec:
+                    auth:
+                      access_token: MTJmZDAxOTAtM2NmOC00NGMxLWE4YWItZjc3NDY3ZTA3MTk1
+                      domain: https://api.apac.traceable.ai
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: instance
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+                    tool:
+                      suite_id: 2dbf201f-01c3-49ad-88d1-a214b793c976
+                      runner_id: a5449d28-5cea-5d1d-ad95-e6873ab70b89
+    - stage:
+        name: SCS
+        identifier: SCS
+        description: ""
+        type: SecurityTests
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: true
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            useFromStage: Build
+          execution:
+            steps:
+              - step:
+                  type: SscaOrchestration
+                  name: SBOM Orchestration_1
+                  identifier: SBOMOrchestration_1
+                  spec:
+                    mode: generation
+                    tool:
+                      type: Syft
+                      spec:
+                        format: spdx-json
+                    source:
+                      type: docker
+                      spec:
+                        connector: dockerHubReadOnly
+                        image: webgoat:latest
+                    sbom_drift:
+                      base: last_generated_sbom
+                    resources:
+                      limits:
+                        memory: 500Mi
+                        cpu: "0.5"
