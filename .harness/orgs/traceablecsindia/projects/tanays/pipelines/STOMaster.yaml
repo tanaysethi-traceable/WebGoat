@@ -42,7 +42,6 @@ pipeline:
                     image: maven:3.9.10-amazoncorretto-17
                     shell: Sh
                     command: |-
-                      yum install git-core groff-base less pcre2 perl perl-Carp perl-Encode perl-Error perl-Exporter perl-File-Path perl-File-Temp perl-Filter perl-Getopt-Long perl-Git perl-HTTP-Tiny perl-PathTools perl-Pod-Escapes perl-Pod-Perldoc perl-Pod-Simple perl-Pod-Usage perl-Scalar-List-Utils perl-Socket perl-Storable perl-TermReadKey perl-Text-ParseWords perl-Time-HiRes perl-Time-Local perl-constant perl-libs perl-macros perl-parent perl-podlators perl-threads perl-threads-shared
                       git clone git@github.com:WebGoat/WebGoat.git
                       cd WebGoat
                       git checkout main
