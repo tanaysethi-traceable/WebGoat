@@ -1,0 +1,48 @@
+pipeline:
+  name: STO-Master
+  identifier: STOMaster
+  projectIdentifier: tanays
+  orgIdentifier: traceablecsindia
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: tanaysgithub
+        repoName: webgoat
+        build: <+input>
+  stages:
+    - stage:
+        name: Build
+        identifier: Build
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: true
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: tanaysk8connector
+              namespace: default
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run_1
+                  identifier: Run_1
+                  spec:
+                    registryRef: tanays
+                    image: webgoat
+                    shell: Sh
+                    command: |-
+                      git clone git@github.com:WebGoat/WebGoat.git
+                      cd WebGoat
+                      git checkout main
+                      ./mvnw clean install
