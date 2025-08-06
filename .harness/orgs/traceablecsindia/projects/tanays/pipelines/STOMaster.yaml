@@ -38,8 +38,8 @@ pipeline:
                   name: Run_1
                   identifier: Run_1
                   spec:
-                    registryRef: tanays
-                    image: webgoat
+                    connectorRef: account.harnessImage
+                    image: maven:3.9.10-amazoncorretto-17
                     shell: Sh
                     command: |-
                       git clone git@github.com:WebGoat/WebGoat.git
