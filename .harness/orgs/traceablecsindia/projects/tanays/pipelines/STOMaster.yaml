@@ -43,3 +43,34 @@ pipeline:
                     image: maven:3.9.9-amazoncorretto-23-debian
                     shell: Sh
                     command: mvn clean package -Dmaven.test.skip=true
+              - stepGroup:
+                  name: SCA
+                  identifier: SCA
+                  steps:
+                    - parallel:
+                        - step:
+                            type: Owasp
+                            name: Owasp_1
+                            identifier: Owasp_1
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: repository
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
+                        - step:
+                            type: OsvScanner
+                            name: OsvScanner_1
+                            identifier: OsvScanner_1
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: repository
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
