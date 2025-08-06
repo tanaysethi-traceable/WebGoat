@@ -80,8 +80,8 @@ pipeline:
                                   level: info
                               resources:
                                 limits:
-                                  memory: 3G
-                                  cpu: "3"
+                                  memory: 3Gi
+                                  cpu: 3000m
                         - step:
                             type: Bandit
                             name: Bandit_1
