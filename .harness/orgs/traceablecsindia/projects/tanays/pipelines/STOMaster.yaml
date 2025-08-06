@@ -42,8 +42,7 @@ pipeline:
                     image: maven:3.9.10-amazoncorretto-17
                     shell: Sh
                     command: |-
-                      apt update
-                      apt install git
+                      yum install git
                       git clone git@github.com:WebGoat/WebGoat.git
                       cd WebGoat
                       git checkout main
