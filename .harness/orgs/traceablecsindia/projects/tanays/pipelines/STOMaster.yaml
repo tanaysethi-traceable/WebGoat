@@ -43,28 +43,28 @@ pipeline:
                     image: maven:3.9.9-amazoncorretto-23-debian
                     shell: Sh
                     command: mvn clean package -Dmaven.test.skip=true
-              - parallel:
-                  - stepGroup:
-                      name: SCA
-                      identifier: SCA
-                      steps:
-                        - step:
-                            type: OsvScanner
-                            name: OsvScanner_1
-                            identifier: OsvScanner_1
-                            spec:
-                              mode: orchestration
-                              config: default
-                              target:
-                                type: repository
-                                detection: auto
-                              advanced:
-                                log:
-                                  level: info
-                  - stepGroup:
-                      name: SAST
-                      identifier: SAST
-                      steps:
+              - stepGroup:
+                  name: SCA
+                  identifier: SCA
+                  steps:
+                    - step:
+                        type: OsvScanner
+                        name: OsvScanner_1
+                        identifier: OsvScanner_1
+                        spec:
+                          mode: orchestration
+                          config: default
+                          target:
+                            type: repository
+                            detection: auto
+                          advanced:
+                            log:
+                              level: info
+              - stepGroup:
+                  name: SAST
+                  identifier: SAST
+                  steps:
+                    - parallel:
                         - step:
                             type: Semgrep
                             name: Semgrep_1
@@ -78,3 +78,33 @@ pipeline:
                               advanced:
                                 log:
                                   level: info
+                        - step:
+                            type: Bandit
+                            name: Bandit_1
+                            identifier: Bandit_1
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: repository
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
+              - stepGroup:
+                  name: SecretDetection
+                  identifier: SecretDetection
+                  steps:
+                    - step:
+                        type: Gitleaks
+                        name: Gitleaks_1
+                        identifier: Gitleaks_1
+                        spec:
+                          mode: orchestration
+                          config: default
+                          target:
+                            type: repository
+                            detection: auto
+                          advanced:
+                            log:
+                              level: info
