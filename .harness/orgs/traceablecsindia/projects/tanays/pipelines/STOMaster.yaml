@@ -38,7 +38,7 @@ pipeline:
                   name: Run_1
                   identifier: Run_1
                   spec:
-                    connectorRef: account.harnessImage
+                    connectorRef: dockerHubReadOnly
                     image: maven:3.9.10-amazoncorretto-17
                     shell: Sh
                     command: |-
