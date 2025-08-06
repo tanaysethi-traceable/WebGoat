@@ -42,4 +42,4 @@ pipeline:
                     connectorRef: dockerHubReadOnly
                     image: maven:3.9.10-amazoncorretto-17
                     shell: Sh
-                    command: ./mvnw clean install
+                    command: mvn clean install
