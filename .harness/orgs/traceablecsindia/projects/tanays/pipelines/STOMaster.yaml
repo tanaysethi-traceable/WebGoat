@@ -178,9 +178,9 @@ pipeline:
                             level: info
                         privileged: true
                         image:
-                          type: harness
-                          registry: tanays
-                          image_path: webgoat
+                          type: docker_v2
+                          tag: latest
+                          name: webgoat
     - stage:
         name: DAST
         identifier: DAST
