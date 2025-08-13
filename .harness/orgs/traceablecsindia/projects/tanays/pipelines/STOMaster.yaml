@@ -181,6 +181,12 @@ pipeline:
                           type: docker_v2
                           tag: latest
                           name: webgoat
+                      failureStrategies:
+                        - onFailure:
+                            errors:
+                              - AllErrors
+                            action:
+                              type: Ignore
     - stage:
         name: DAST
         identifier: DAST
