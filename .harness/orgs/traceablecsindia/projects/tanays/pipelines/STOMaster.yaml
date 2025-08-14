@@ -212,7 +212,9 @@ pipeline:
                     config: default
                     target:
                       type: instance
-                      detection: auto
+                      detection: manual
+                      name: webgoat
+                      variant: master
                     advanced:
                       log:
                         level: info
