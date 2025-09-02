@@ -133,13 +133,13 @@ pipeline:
                   name: Build
                   identifier: Build
                   spec:
-                    repo: webgoat
+                    connectorRef: dockerHubReadOnly
+                    repo: tanayharness/tanaysethi-traceable
                     tags:
                       - latest
                     envVariables:
                       PLUGIN_TAR_PATH: /harness/webgoat.tar
                       PLUGIN_NO_PUSH: "true"
-                    registryRef: tanays
               - step:
                   type: Run
                   name: Run_1
