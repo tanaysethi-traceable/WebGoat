@@ -252,7 +252,7 @@ pipeline:
                       type: docker
                       spec:
                         connector: dockerHubReadOnly
-                        image: webgoat:latest
+                        image: latest
                     attestation:
                       type: cosign
                       spec:
