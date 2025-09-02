@@ -252,7 +252,7 @@ pipeline:
                       type: docker
                       spec:
                         connector: dockerHubReadOnly
-                        image: latest
+                        image: tanayharness/tanaysethi-traceable:latest
                     attestation:
                       type: cosign
                       spec:
