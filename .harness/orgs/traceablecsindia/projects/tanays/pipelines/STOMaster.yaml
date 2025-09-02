@@ -204,24 +204,6 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: Zap
-                  name: ZAP
-                  identifier: ZAP
-                  spec:
-                    mode: orchestration
-                    config: default
-                    target:
-                      type: instance
-                      detection: manual
-                      name: webgoat
-                      variant: master
-                    advanced:
-                      log:
-                        level: info
-                    instance:
-                      domain: http://ec2-13-235-216-127.ap-south-1.compute.amazonaws.com:8881
-                      protocol: http
-              - step:
                   type: Traceable
                   name: Traceable
                   identifier: Traceable
@@ -271,6 +253,11 @@ pipeline:
                       spec:
                         connector: dockerHubReadOnly
                         image: webgoat:latest
+                    attestation:
+                      type: cosign
+                      spec:
+                        privateKey: SBOM_Attest
+                        password: SBOM_Attest_02
                     sbom_drift:
                       base: last_generated_sbom
                     resources:
