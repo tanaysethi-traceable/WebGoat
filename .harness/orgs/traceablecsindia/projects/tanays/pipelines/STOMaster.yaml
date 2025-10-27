@@ -24,14 +24,6 @@ pipeline:
             paths: []
           buildIntelligence:
             enabled: false
-          infrastructure:
-            type: KubernetesDirect
-            spec:
-              connectorRef: tanaysk8connector
-              namespace: default
-              automountServiceAccountToken: true
-              nodeSelector: {}
-              os: Linux
           execution:
             steps:
               - step:
@@ -112,6 +104,13 @@ pipeline:
                           advanced:
                             log:
                               level: info
+          platform:
+            os: Linux
+            arch: Arm64
+          runtime:
+            type: Docker
+            spec:
+              harnessImageConnectorRef: dockerHubReadOnly
     - stage:
         name: DockerImage
         identifier: DockerImage
