@@ -104,15 +104,12 @@ pipeline:
                           advanced:
                             log:
                               level: info
-          infrastructure:
-            type: KubernetesDirect
-            spec:
-              connectorRef: tanaysk8connector
-              namespace: default
-              automountServiceAccountToken: true
-              nodeSelector: {}
-              harnessImageConnectorRef: dockerHubReadOnly
-              os: Linux
+          platform:
+            os: Linux
+            arch: Arm64
+          runtime:
+            type: Cloud
+            spec: {}
     - stage:
         name: DockerImage
         identifier: DockerImage
