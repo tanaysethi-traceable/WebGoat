@@ -107,6 +107,13 @@ pipeline:
           runtime:
             type: Cloud
             spec: {}
+        when:
+          pipelineStatus: Success
+        failureStrategies:
+          - onFailure:
+              errors: []
+              action:
+                type: Ignore
     - stage:
         name: DockerImage
         identifier: DockerImage
