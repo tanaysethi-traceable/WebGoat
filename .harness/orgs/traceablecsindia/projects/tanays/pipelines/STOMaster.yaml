@@ -87,6 +87,20 @@ pipeline:
                           advanced:
                             log:
                               level: info
+              - step:
+                  type: Checkov
+                  name: Checkov_1
+                  identifier: Checkov_1
+                  spec:
+                    target:
+                      detection: auto
+                      type: repository
+                    advanced:
+                      log:
+                        level: info
+                      args: {}
+                    mode: orchestration
+                    config: default
           platform:
             os: Linux
             arch: Arm64
@@ -252,3 +266,14 @@ pipeline:
                       limits:
                         memory: 500Mi
                         cpu: "0.5"
+              - step:
+                  type: SscaCompliance
+                  name: SCS Compliance_1
+                  identifier: SCSCompliance_1
+                  spec:
+                    source:
+                      type: github
+                      spec:
+                        connectorRef: tanaysgithub
+                        repoName: webgoat
+                        scan_org: true
