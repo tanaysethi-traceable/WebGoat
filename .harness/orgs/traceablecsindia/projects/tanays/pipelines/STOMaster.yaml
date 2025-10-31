@@ -8,8 +8,9 @@ pipeline:
     ci:
       codebase:
         connectorRef: tanaysgithub
-        repoName: webgoat
+        repoName: WebGoat
         build: <+input>
+        sparseCheckout: []
   stages:
     - stage:
         name: Build SCA  SAST
