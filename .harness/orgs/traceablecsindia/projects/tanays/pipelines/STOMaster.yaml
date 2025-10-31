@@ -51,8 +51,10 @@ pipeline:
                         level: info
                     privileged: true
                     image:
-                      type: docker_v2
+                      type: harness
                       tag: latest
+                      registry: tanays
+                      image_path: webgoat/webgoat:latest
                       name: webgoat/webgoat
               - stepGroup:
                   name: SAST
