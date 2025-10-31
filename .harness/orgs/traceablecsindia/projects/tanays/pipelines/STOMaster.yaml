@@ -76,6 +76,8 @@ pipeline:
                                 limits:
                                   memory: 3Gi
                                   cpu: 3000m
+                              connectorRef: dockerHubReadOnly
+                              imageTag: latest
                         - step:
                             type: Bandit
                             name: Bandit_1
