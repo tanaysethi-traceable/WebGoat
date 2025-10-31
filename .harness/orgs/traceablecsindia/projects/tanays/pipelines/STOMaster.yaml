@@ -36,6 +36,24 @@ pipeline:
                     image: maven:3.9.9-amazoncorretto-23-debian
                     shell: Sh
                     command: mvn clean package -Dmaven.test.skip=true
+              - step:
+                  type: Grype
+                  name: Grype_1
+                  identifier: Grype_1
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: container
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+                    privileged: true
+                    image:
+                      type: docker_v2
+                      tag: latest
+                      name: webgoat/webgoat
               - stepGroup:
                   name: SAST
                   identifier: SAST
