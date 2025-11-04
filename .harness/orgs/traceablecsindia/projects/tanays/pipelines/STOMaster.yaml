@@ -61,8 +61,6 @@ pipeline:
             override: true
           buildIntelligence:
             enabled: true
-          infrastructure:
-            useFromStage: Build
           execution:
             steps:
               - step:
@@ -74,6 +72,7 @@ pipeline:
                     repo: tanayharness/tanaysethi-traceable
                     tags:
                       - latest
+                    target: /target
                     envVariables:
                       PLUGIN_TAR_PATH: /harness/webgoat.tar
                       PLUGIN_NO_PUSH: "true"
@@ -124,6 +123,12 @@ pipeline:
                               - AllErrors
                             action:
                               type: Ignore
+          platform:
+            os: Linux
+            arch: Arm64
+          runtime:
+            type: Cloud
+            spec: {}
     - stage:
         name: DAST
         identifier: DAST
