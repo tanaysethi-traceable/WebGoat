@@ -51,10 +51,8 @@ pipeline:
                         level: info
                     privileged: true
                     image:
-                      type: harness
+                      type: docker_v2
                       tag: latest
-                      registry: tanays
-                      image_path: webgoat/webgoat:latest
                       name: webgoat/webgoat
           platform:
             os: Linux
