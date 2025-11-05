@@ -45,7 +45,6 @@ pipeline:
                     repo: tanayharness/WebGoat
                     tags:
                       - latest
-                    target: /target
                     envVariables:
                       PLUGIN_TAR_PATH: /harness/webgoat.tar
                       PLUGIN_NO_PUSH: "true"
