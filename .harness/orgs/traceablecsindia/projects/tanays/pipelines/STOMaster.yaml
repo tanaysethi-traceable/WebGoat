@@ -38,7 +38,7 @@ pipeline:
                     command: mvn clean package -Dmaven.test.skip=true
           platform:
             os: Linux
-            arch: Arm64
+            arch: Amd64
           runtime:
             type: Cloud
             spec: {}
@@ -125,7 +125,7 @@ pipeline:
                               type: Ignore
           platform:
             os: Linux
-            arch: Arm64
+            arch: Amd64
           runtime:
             type: Cloud
             spec: {}
