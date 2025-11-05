@@ -37,20 +37,46 @@ pipeline:
                     shell: Sh
                     command: mvn clean package -Dmaven.test.skip=true
               - step:
-                  type: BuildAndPushDockerRegistry
-                  name: Build
-                  identifier: Build
+                  type: SscaOrchestration
+                  name: SBOM Orchestration_1
+                  identifier: SBOMOrchestration_1
                   spec:
-                    connectorRef: dockerHubReadOnly
-                    repo: tanayharness/webgoat
-                    tags:
-                      - latest
-                    envVariables:
-                      PLUGIN_TAR_PATH: /harness/webgoat.tar
-                      PLUGIN_NO_PUSH: "true"
+                    mode: generation
+                    tool:
+                      type: Syft
+                      spec:
+                        format: spdx-json
+                    source:
+                      type: repository
+                      spec:
+                        url: https://github.com/tanaysethi-traceable/WebGoat
+                        variant_type: branch
+                        variant: main
+                    sbom_drift:
+                      base: repository
+                      spec:
+                        variant: main
+                    resources:
+                      limits:
+                        memory: 500Mi
+                        cpu: "0.5"
+              - step:
+                  type: Gitleaks
+                  name: Gitleaks_1
+                  identifier: Gitleaks_1
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: repository
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+                contextType: Pipeline
               - stepGroup:
-                  name: Security Tests
-                  identifier: Security_Tests
+                  name: Security Scans
+                  identifier: Security_Scans
                   steps:
                     - parallel:
                         - step:
@@ -67,6 +93,7 @@ pipeline:
                                 args: {}
                               mode: orchestration
                               config: default
+                          contextType: Pipeline
                         - step:
                             type: Semgrep
                             name: Semgrep_1
@@ -81,19 +108,51 @@ pipeline:
                                 args: {}
                               mode: orchestration
                               config: default
-                        - step:
-                            type: Gitleaks
-                            name: Gitleaks_1
-                            identifier: Gitleaks_1
-                            spec:
-                              mode: orchestration
-                              config: default
-                              target:
-                                type: repository
-                                detection: auto
-                              advanced:
-                                log:
-                                  level: info
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build
+                  identifier: Build
+                  spec:
+                    connectorRef: dockerHubReadOnly
+                    repo: tanayharness/webgoat
+                    tags:
+                      - latest
+                    envVariables:
+                      PLUGIN_TAR_PATH: /harness/webgoat.tar
+                      PLUGIN_NO_PUSH: "true"
+                contextType: Pipeline
+              - step:
+                  type: SscaArtifactSigning
+                  name: Artifact Signing_1
+                  identifier: ArtifactSigning_1
+                  spec:
+                    source:
+                      type: docker
+                      spec:
+                        connector: dockerHubReadOnly
+                        image: webgoat:latest
+                    signing:
+                      type: cosign
+                      spec:
+                        private_key: SBOM_Attest
+                        password: SBOM_Attest_02
+                    uploadSignature:
+                      upload: true
+              - step:
+                  type: provenance
+                  name: SLSA Generation_1
+                  identifier: SLSAGeneration_1
+                  spec:
+                    source:
+                      type: docker
+                      spec:
+                        connector: dockerHubReadOnly
+                        repo: webgoat:latest
+                    attestation:
+                      type: cosign
+                      spec:
+                        private_key: SBOM_Attest
+                        password: SBOM_Attest_02
           platform:
             os: Linux
             arch: Amd64
