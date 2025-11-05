@@ -197,6 +197,32 @@ pipeline:
                                 type: docker_v2
                                 tag: latest
                                 name: tanayharness/weggoat
+              - step:
+                  type: SscaOrchestration
+                  name: Image SBOM
+                  identifier: Image_SBOM
+                  spec:
+                    mode: generation
+                    tool:
+                      type: Syft
+                      spec:
+                        format: spdx-json
+                    source:
+                      type: docker
+                      spec:
+                        connector: dockerHubReadOnly
+                        image: webgoat:latest
+                    attestation:
+                      type: cosign
+                      spec:
+                        privateKey: SBOM_Attest
+                        password: SBOM_Attest_02
+                    sbom_drift:
+                      base: last_generated_sbom
+                    resources:
+                      limits:
+                        memory: 500Mi
+                        cpu: "0.5"
           platform:
             os: Linux
             arch: Amd64
