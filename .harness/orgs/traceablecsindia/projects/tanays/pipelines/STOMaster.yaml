@@ -168,8 +168,6 @@ pipeline:
             override: true
           buildIntelligence:
             enabled: true
-          infrastructure:
-            useFromStage: Build
           execution:
             steps:
               - step:
@@ -186,7 +184,7 @@ pipeline:
                       type: docker
                       spec:
                         connector: dockerHubReadOnly
-                        image: tanayharness/tanaysethi-traceable:latest
+                        image: tanayharness/webgoat
                     attestation:
                       type: cosign
                       spec:
@@ -209,3 +207,9 @@ pipeline:
                         connectorRef: tanaysgithub
                         repoName: webgoat
                         scan_org: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
