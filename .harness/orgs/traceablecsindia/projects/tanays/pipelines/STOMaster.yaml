@@ -196,7 +196,7 @@ pipeline:
                               image:
                                 type: docker_v2
                                 tag: latest
-                                name: tanayharness/weggoat
+                                name: tanayharness/webgoat
               - step:
                   type: SscaOrchestration
                   name: Image SBOM
