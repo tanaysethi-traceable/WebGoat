@@ -36,6 +36,79 @@ pipeline:
                     image: maven:3.9.9-amazoncorretto-23-debian
                     shell: Sh
                     command: mvn clean package -Dmaven.test.skip=true
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build
+                  identifier: Build
+                  spec:
+                    connectorRef: dockerHubReadOnly
+                    repo: tanayharness/WebGoat
+                    tags:
+                      - latest
+                    target: /target
+                    envVariables:
+                      PLUGIN_TAR_PATH: /harness/webgoat.tar
+                      PLUGIN_NO_PUSH: "true"
+              - stepGroup:
+                  name: Security Tests
+                  identifier: Security_Tests
+                  steps:
+                    - parallel:
+                        - step:
+                            type: Owasp
+                            name: Owasp_1
+                            identifier: Owasp_1
+                            spec:
+                              target:
+                                detection: auto
+                                type: repository
+                              advanced:
+                                log:
+                                  level: info
+                                args: {}
+                              mode: orchestration
+                              config: default
+                        - step:
+                            type: OsvScanner
+                            name: OsvScanner_1
+                            identifier: OsvScanner_1
+                            spec:
+                              target:
+                                detection: auto
+                                type: repository
+                              advanced:
+                                log:
+                                  level: info
+                                args: {}
+                              mode: orchestration
+                              config: default
+                        - step:
+                            type: Semgrep
+                            name: Semgrep_1
+                            identifier: Semgrep_1
+                            spec:
+                              target:
+                                detection: auto
+                                type: repository
+                              advanced:
+                                log:
+                                  level: info
+                                args: {}
+                              mode: orchestration
+                              config: default
+                        - step:
+                            type: Gitleaks
+                            name: Gitleaks_1
+                            identifier: Gitleaks_1
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: repository
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
           platform:
             os: Linux
             arch: Amd64
@@ -49,86 +122,6 @@ pipeline:
               errors: []
               action:
                 type: Ignore
-    - stage:
-        name: DockerImage
-        identifier: DockerImage
-        description: ""
-        type: CI
-        spec:
-          cloneCodebase: true
-          caching:
-            enabled: true
-            override: true
-          buildIntelligence:
-            enabled: true
-          execution:
-            steps:
-              - step:
-                  type: BuildAndPushDockerRegistry
-                  name: Build
-                  identifier: Build
-                  spec:
-                    connectorRef: dockerHubReadOnly
-                    repo: tanayharness/tanaysethi-traceable
-                    tags:
-                      - latest
-                    target: /target
-                    envVariables:
-                      PLUGIN_TAR_PATH: /harness/webgoat.tar
-                      PLUGIN_NO_PUSH: "true"
-              - step:
-                  type: Run
-                  name: Run_1
-                  identifier: Run_1
-                  spec:
-                    connectorRef: dockerHubReadOnly
-                    image: alpine
-                    shell: Sh
-                    command: ls -larth
-              - parallel:
-                  - step:
-                      type: Checkov
-                      name: Checkov
-                      identifier: Checkov
-                      spec:
-                        mode: orchestration
-                        config: default
-                        target:
-                          type: repository
-                          detection: auto
-                        advanced:
-                          log:
-                            level: info
-                  - step:
-                      type: Grype
-                      name: Grype_1
-                      identifier: Grype_1
-                      spec:
-                        mode: orchestration
-                        config: default
-                        target:
-                          type: container
-                          detection: auto
-                        advanced:
-                          log:
-                            level: info
-                        privileged: true
-                        image:
-                          type: docker_v2
-                          tag: latest
-                          name: webgoat
-                      failureStrategies:
-                        - onFailure:
-                            errors:
-                              - AllErrors
-                            action:
-                              type: Ignore
-          platform:
-            os: Linux
-            arch: Amd64
-          runtime:
-            type: Cloud
-            spec: {}
     - stage:
         name: DAST
         identifier: DAST
