@@ -13,7 +13,7 @@ pipeline:
         sparseCheckout: []
   stages:
     - stage:
-        name: "Build "
+        name: Build and Scan
         identifier: Build
         description: ""
         type: CI
