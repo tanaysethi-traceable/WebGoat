@@ -316,31 +316,40 @@ pipeline:
                   - stepGroup:
                       name: Scan
                       identifier: Scan
+                      strategy:
+                        matrix:
+                          scanPath:
+                            - /harness/IaCM-TFVARS
+                            - /harness/IaCM
                       steps:
                         - parallel:
                             - step:
                                 type: Checkov
-                                name: Checkov_1
-                                identifier: Checkov_1
+                                name: Checkov_<+strategy.matrix.scanPath>
+                                identifier: Checkov_<+strategy.identifierPostFix>
                                 spec:
                                   mode: orchestration
                                   config: default
                                   target:
                                     type: repository
-                                    detection: auto
+                                    detection: manual
+                                    spec:
+                                      path: <+strategy.matrix.scanPath>
                                   advanced:
                                     log:
                                       level: info
                             - step:
                                 type: Gitleaks
-                                name: Gitleaks_1
-                                identifier: Gitleaks_1
+                                name: Gitleaks_<+strategy.matrix.scanPath>
+                                identifier: Gitleaks_<+strategy.identifierPostFix>
                                 spec:
                                   mode: orchestration
                                   config: default
                                   target:
                                     type: repository
-                                    detection: auto
+                                    detection: manual
+                                    spec:
+                                      path: <+strategy.matrix.scanPath>
                                   advanced:
                                     log:
                                       level: info
