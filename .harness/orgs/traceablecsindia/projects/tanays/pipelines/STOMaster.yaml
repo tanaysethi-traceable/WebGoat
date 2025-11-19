@@ -332,9 +332,7 @@ pipeline:
                                   config: default
                                   target:
                                     type: repository
-                                    detection: manual
-                                    spec:
-                                      path: <+strategy.matrix.scanPath>
+                                    detection: auto
                                   advanced:
                                     log:
                                       level: info
@@ -347,9 +345,7 @@ pipeline:
                                   config: default
                                   target:
                                     type: repository
-                                    detection: manual
-                                    spec:
-                                      path: <+strategy.matrix.scanPath>
+                                    detection: auto
                                   advanced:
                                     log:
                                       level: info
