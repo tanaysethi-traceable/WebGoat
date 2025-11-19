@@ -452,3 +452,4 @@ pipeline:
                     stageStatus: Success
                     condition: "false"
         tags: {}
+  allowStageExecutions: true
