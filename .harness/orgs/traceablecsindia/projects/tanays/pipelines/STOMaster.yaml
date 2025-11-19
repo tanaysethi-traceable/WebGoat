@@ -12,257 +12,301 @@ pipeline:
         build: <+input>
         sparseCheckout: []
   stages:
+    - stage:
+        name: Build and Scan
+        identifier: Build
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: true
+            paths: []
+          buildIntelligence:
+            enabled: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run_1
+                  identifier: Run_1
+                  spec:
+                    connectorRef: dockerHubReadOnly
+                    image: maven:3.9.9-amazoncorretto-23-debian
+                    shell: Sh
+                    command: mvn clean package -Dmaven.test.skip=true
+              - step:
+                  type: SscaOrchestration
+                  name: SBOM Orchestration_1
+                  identifier: SBOMOrchestration_1
+                  spec:
+                    mode: generation
+                    tool:
+                      type: Syft
+                      spec:
+                        format: spdx-json
+                    source:
+                      type: repository
+                      spec:
+                        url: https://github.com/tanaysethi-traceable/WebGoat
+                        variant_type: branch
+                        variant: main
+                    sbom_drift:
+                      base: repository
+                      spec:
+                        variant: main
+                    resources:
+                      limits:
+                        memory: 500Mi
+                        cpu: "0.5"
+              - step:
+                  type: Gitleaks
+                  name: Gitleaks_1
+                  identifier: Gitleaks_1
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: repository
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+                contextType: Pipeline
+              - stepGroup:
+                  name: Security Scans
+                  identifier: Security_Scans
+                  steps:
+                    - parallel:
+                        - step:
+                            type: OsvScanner
+                            name: OsvScanner_1
+                            identifier: OsvScanner_1
+                            spec:
+                              target:
+                                detection: auto
+                                type: repository
+                              advanced:
+                                log:
+                                  level: info
+                                args: {}
+                              mode: orchestration
+                              config: default
+                          contextType: Pipeline
+                        - step:
+                            type: Semgrep
+                            name: Semgrep_1
+                            identifier: Semgrep_1
+                            spec:
+                              target:
+                                detection: auto
+                                type: repository
+                              advanced:
+                                log:
+                                  level: info
+                                args: {}
+                              mode: orchestration
+                              config: default
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build
+                  identifier: Build
+                  spec:
+                    connectorRef: dockerHubReadOnly
+                    repo: tanayharness/webgoat
+                    tags:
+                      - latest
+                    envVariables:
+                      PLUGIN_TAR_PATH: /harness/webgoat.tar
+                      PLUGIN_NO_PUSH: "true"
+                contextType: Pipeline
+              - step:
+                  type: SscaArtifactSigning
+                  name: Artifact Signing_1
+                  identifier: ArtifactSigning_1
+                  spec:
+                    source:
+                      type: docker
+                      spec:
+                        connector: dockerHubReadOnly
+                        image: tanayharness/webgoat:latest
+                    signing:
+                      type: cosign
+                      spec:
+                        private_key: SBOM_Attest
+                        password: SBOM_Attest_02
+                    uploadSignature:
+                      upload: true
+              - step:
+                  type: provenance
+                  name: SLSA Generation_1
+                  identifier: SLSAGeneration_1
+                  spec:
+                    source:
+                      type: docker
+                      spec:
+                        connector: dockerHubReadOnly
+                        repo: tanayharness/webgoat:latest
+                    attestation:
+                      type: cosign
+                      spec:
+                        private_key: SBOM_Attest
+                        password: SBOM_Attest_02
+              - stepGroup:
+                  name: Container Scan
+                  identifier: Container_Scan
+                  steps:
+                    - parallel:
+                        - step:
+                            type: AquaTrivy
+                            name: AquaTrivy_1
+                            identifier: AquaTrivy_1
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: container
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
+                              privileged: true
+                              image:
+                                type: docker_v2
+                                tag: latest
+                                name: tanayharness/webgoat
+                              sbom:
+                                generate: true
+                                format: spdx-json
+                        - step:
+                            type: Grype
+                            name: Grype_1
+                            identifier: Grype_1
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: container
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
+                              privileged: true
+                              image:
+                                type: docker_v2
+                                tag: latest
+                                name: tanayharness/webgoat
+              - step:
+                  type: SscaOrchestration
+                  name: Image SBOM
+                  identifier: Image_SBOM
+                  spec:
+                    mode: generation
+                    tool:
+                      type: Syft
+                      spec:
+                        format: spdx-json
+                    source:
+                      type: docker
+                      spec:
+                        connector: dockerHubReadOnly
+                        image: tanayharness/webgoat:latest
+                    attestation:
+                      type: cosign
+                      spec:
+                        privateKey: SBOM_Attest
+                        password: SBOM_Attest_02
+                    sbom_drift:
+                      base: last_generated_sbom
+                    resources:
+                      limits:
+                        memory: 500Mi
+                        cpu: "0.5"
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+        when:
+          pipelineStatus: Success
+        failureStrategies:
+          - onFailure:
+              errors: []
+              action:
+                type: Ignore
     - parallel:
         - stage:
-            name: Build and Scan
-            identifier: Build
+            name: DAST
+            identifier: DAST
             description: ""
-            type: CI
+            type: SecurityTests
             spec:
               cloneCodebase: true
+              caching:
+                enabled: true
+                override: true
+              buildIntelligence:
+                enabled: true
+              infrastructure:
+                useFromStage: Build
+              execution:
+                steps:
+                  - step:
+                      type: Traceable
+                      name: Traceable
+                      identifier: Traceable
+                      spec:
+                        auth:
+                          access_token: MTJmZDAxOTAtM2NmOC00NGMxLWE4YWItZjc3NDY3ZTA3MTk1
+                          domain: https://api.apac.traceable.ai
+                        mode: orchestration
+                        config: default
+                        target:
+                          type: instance
+                          detection: auto
+                        advanced:
+                          log:
+                            level: info
+                        tool:
+                          suite_id: 2dbf201f-01c3-49ad-88d1-a214b793c976
+                          runner_id: a5449d28-5cea-5d1d-ad95-e6873ab70b89
+        - stage:
+            name: IaCM-Scan
+            identifier: IaCMScan
+            description: ""
+            type: SecurityTests
+            spec:
+              cloneCodebase: false
               caching:
                 enabled: true
                 override: true
                 paths: []
               buildIntelligence:
                 enabled: true
-              execution:
-                steps:
-                  - step:
-                      type: Run
-                      name: Run_1
-                      identifier: Run_1
-                      spec:
-                        connectorRef: dockerHubReadOnly
-                        image: maven:3.9.9-amazoncorretto-23-debian
-                        shell: Sh
-                        command: mvn clean package -Dmaven.test.skip=true
-                  - step:
-                      type: SscaOrchestration
-                      name: SBOM Orchestration_1
-                      identifier: SBOMOrchestration_1
-                      spec:
-                        mode: generation
-                        tool:
-                          type: Syft
-                          spec:
-                            format: spdx-json
-                        source:
-                          type: repository
-                          spec:
-                            url: https://github.com/tanaysethi-traceable/WebGoat
-                            variant_type: branch
-                            variant: main
-                        sbom_drift:
-                          base: repository
-                          spec:
-                            variant: main
-                        resources:
-                          limits:
-                            memory: 500Mi
-                            cpu: "0.5"
-                  - step:
-                      type: Gitleaks
-                      name: Gitleaks_1
-                      identifier: Gitleaks_1
-                      spec:
-                        mode: orchestration
-                        config: default
-                        target:
-                          type: repository
-                          detection: auto
-                        advanced:
-                          log:
-                            level: info
-                    contextType: Pipeline
-                  - stepGroup:
-                      name: Security Scans
-                      identifier: Security_Scans
-                      steps:
-                        - parallel:
-                            - step:
-                                type: OsvScanner
-                                name: OsvScanner_1
-                                identifier: OsvScanner_1
-                                spec:
-                                  target:
-                                    detection: auto
-                                    type: repository
-                                  advanced:
-                                    log:
-                                      level: info
-                                    args: {}
-                                  mode: orchestration
-                                  config: default
-                              contextType: Pipeline
-                            - step:
-                                type: Semgrep
-                                name: Semgrep_1
-                                identifier: Semgrep_1
-                                spec:
-                                  target:
-                                    detection: auto
-                                    type: repository
-                                  advanced:
-                                    log:
-                                      level: info
-                                    args: {}
-                                  mode: orchestration
-                                  config: default
-                  - step:
-                      type: BuildAndPushDockerRegistry
-                      name: Build
-                      identifier: Build
-                      spec:
-                        connectorRef: dockerHubReadOnly
-                        repo: tanayharness/webgoat
-                        tags:
-                          - latest
-                        envVariables:
-                          PLUGIN_TAR_PATH: /harness/webgoat.tar
-                          PLUGIN_NO_PUSH: "true"
-                    contextType: Pipeline
-                  - step:
-                      type: SscaArtifactSigning
-                      name: Artifact Signing_1
-                      identifier: ArtifactSigning_1
-                      spec:
-                        source:
-                          type: docker
-                          spec:
-                            connector: dockerHubReadOnly
-                            image: tanayharness/webgoat:latest
-                        signing:
-                          type: cosign
-                          spec:
-                            private_key: SBOM_Attest
-                            password: SBOM_Attest_02
-                        uploadSignature:
-                          upload: true
-                  - step:
-                      type: provenance
-                      name: SLSA Generation_1
-                      identifier: SLSAGeneration_1
-                      spec:
-                        source:
-                          type: docker
-                          spec:
-                            connector: dockerHubReadOnly
-                            repo: tanayharness/webgoat:latest
-                        attestation:
-                          type: cosign
-                          spec:
-                            private_key: SBOM_Attest
-                            password: SBOM_Attest_02
-                  - stepGroup:
-                      name: Container Scan
-                      identifier: Container_Scan
-                      steps:
-                        - parallel:
-                            - step:
-                                type: AquaTrivy
-                                name: AquaTrivy_1
-                                identifier: AquaTrivy_1
-                                spec:
-                                  mode: orchestration
-                                  config: default
-                                  target:
-                                    type: container
-                                    detection: auto
-                                  advanced:
-                                    log:
-                                      level: info
-                                  privileged: true
-                                  image:
-                                    type: docker_v2
-                                    tag: latest
-                                    name: tanayharness/webgoat
-                                  sbom:
-                                    generate: true
-                                    format: spdx-json
-                            - step:
-                                type: Grype
-                                name: Grype_1
-                                identifier: Grype_1
-                                spec:
-                                  mode: orchestration
-                                  config: default
-                                  target:
-                                    type: container
-                                    detection: auto
-                                  advanced:
-                                    log:
-                                      level: info
-                                  privileged: true
-                                  image:
-                                    type: docker_v2
-                                    tag: latest
-                                    name: tanayharness/webgoat
-                  - step:
-                      type: SscaOrchestration
-                      name: Image SBOM
-                      identifier: Image_SBOM
-                      spec:
-                        mode: generation
-                        tool:
-                          type: Syft
-                          spec:
-                            format: spdx-json
-                        source:
-                          type: docker
-                          spec:
-                            connector: dockerHubReadOnly
-                            image: tanayharness/webgoat:latest
-                        attestation:
-                          type: cosign
-                          spec:
-                            privateKey: SBOM_Attest
-                            password: SBOM_Attest_02
-                        sbom_drift:
-                          base: last_generated_sbom
-                        resources:
-                          limits:
-                            memory: 500Mi
-                            cpu: "0.5"
               platform:
                 os: Linux
                 arch: Amd64
               runtime:
                 type: Cloud
                 spec: {}
-            when:
-              pipelineStatus: Success
-            failureStrategies:
-              - onFailure:
-                  errors: []
-                  action:
-                    type: Ignore
-        - stage:
-            name: IaCM
-            identifier: IaCM
-            description: ""
-            type: IACM
-            spec:
-              platform:
-                os: Linux
-                arch: Amd64
-              runtime:
-                type: Cloud
-                spec: {}
-              workspace: ECS
               execution:
                 steps:
                   - step:
-                      type: IACMOpenTofuPlugin
-                      name: init
-                      identifier: init
-                      timeout: 10m
+                      type: GitClone
+                      name: GitClone_1
+                      identifier: GitClone_1
                       spec:
-                        command: init
+                        repoName: IaCM
+                        build:
+                          type: branch
+                          spec:
+                            branch: main
                   - step:
                       type: Checkov
-                      name: Checkov
-                      identifier: Checkov
+                      name: Checkov_1
+                      identifier: Checkov_1
                       spec:
                         mode: orchestration
                         config: default
@@ -272,49 +316,6 @@ pipeline:
                         advanced:
                           log:
                             level: info
-                  - step:
-                      type: IACMOpenTofuPlugin
-                      name: plan
-                      identifier: plan
-                      timeout: 10m
-                      spec:
-                        command: plan
-            tags: {}
-    - stage:
-        name: DAST
-        identifier: DAST
-        description: ""
-        type: SecurityTests
-        spec:
-          cloneCodebase: true
-          caching:
-            enabled: true
-            override: true
-          buildIntelligence:
-            enabled: true
-          infrastructure:
-            useFromStage: Build
-          execution:
-            steps:
-              - step:
-                  type: Traceable
-                  name: Traceable
-                  identifier: Traceable
-                  spec:
-                    auth:
-                      access_token: MTJmZDAxOTAtM2NmOC00NGMxLWE4YWItZjc3NDY3ZTA3MTk1
-                      domain: https://api.apac.traceable.ai
-                    mode: orchestration
-                    config: default
-                    target:
-                      type: instance
-                      detection: auto
-                    advanced:
-                      log:
-                        level: info
-                    tool:
-                      suite_id: 2dbf201f-01c3-49ad-88d1-a214b793c976
-                      runner_id: a5449d28-5cea-5d1d-ad95-e6873ab70b89
     - stage:
         name: SCS
         identifier: SCS
@@ -372,3 +373,40 @@ pipeline:
           runtime:
             type: Cloud
             spec: {}
+    - stage:
+        name: Deploy
+        identifier: Deploy
+        description: ""
+        type: IACM
+        spec:
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          workspace: ECS
+          execution:
+            steps:
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: init
+                  identifier: init
+                  timeout: 10m
+                  spec:
+                    command: init
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: plan
+                  identifier: plan
+                  timeout: 10m
+                  spec:
+                    command: plan
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: apply
+                  identifier: apply
+                  timeout: 10m
+                  spec:
+                    command: apply
+        tags: {}
