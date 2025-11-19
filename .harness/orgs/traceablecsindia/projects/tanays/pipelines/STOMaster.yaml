@@ -325,8 +325,8 @@ pipeline:
                         - parallel:
                             - step:
                                 type: Checkov
-                                name: Checkov_<+strategy.matrix.scanPath>
-                                identifier: Checkov_<+strategy.identifierPostFix>
+                                name: Checkov
+                                identifier: Checkov
                                 spec:
                                   mode: orchestration
                                   config: default
@@ -340,8 +340,8 @@ pipeline:
                                       level: info
                             - step:
                                 type: Gitleaks
-                                name: Gitleaks_<+strategy.matrix.scanPath>
-                                identifier: Gitleaks_<+strategy.identifierPostFix>
+                                name: Gitleaks
+                                identifier: Gitleaks
                                 spec:
                                   mode: orchestration
                                   config: default
