@@ -346,6 +346,7 @@ pipeline:
                                   config: default
                                   target:
                                     type: repository
+                                    workspace: <+repeat.item>
                                     detection: auto
                                   advanced:
                                     log:
