@@ -317,8 +317,8 @@ pipeline:
                       name: Scan
                       identifier: Scan
                       strategy:
-                        matrix:
-                          scanPath:
+                        repeat:
+                          items:
                             - /harness/IaCM-TFVARS
                             - /harness/IaCM
                       steps:
