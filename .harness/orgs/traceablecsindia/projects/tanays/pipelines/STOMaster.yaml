@@ -293,29 +293,58 @@ pipeline:
                 spec: {}
               execution:
                 steps:
-                  - step:
-                      type: GitClone
-                      name: GitClone_1
-                      identifier: GitClone_1
-                      spec:
-                        repoName: IaCM
-                        build:
-                          type: branch
+                  - parallel:
+                      - step:
+                          type: GitClone
+                          name: IaCM
+                          identifier: GitClone_1
                           spec:
-                            branch: main
-                  - step:
-                      type: Checkov
-                      name: Checkov_1
-                      identifier: Checkov_1
-                      spec:
-                        mode: orchestration
-                        config: default
-                        target:
-                          type: repository
-                          detection: auto
-                        advanced:
-                          log:
-                            level: info
+                            repoName: IaCM
+                            build:
+                              type: branch
+                              spec:
+                                branch: main
+                      - step:
+                          type: GitClone
+                          name: TFVARS
+                          identifier: TFVARS
+                          spec:
+                            repoName: IaCM-TFVARS
+                            build:
+                              type: branch
+                              spec:
+                                branch: main
+                  - stepGroup:
+                      name: Scan
+                      identifier: Scan
+                      steps:
+                        - parallel:
+                            - step:
+                                type: Checkov
+                                name: Checkov_1
+                                identifier: Checkov_1
+                                spec:
+                                  mode: orchestration
+                                  config: default
+                                  target:
+                                    type: repository
+                                    detection: auto
+                                  advanced:
+                                    log:
+                                      level: info
+                            - step:
+                                type: Gitleaks
+                                name: Gitleaks_1
+                                identifier: Gitleaks_1
+                                spec:
+                                  mode: orchestration
+                                  config: default
+                                  target:
+                                    type: repository
+                                    detection: auto
+                                  advanced:
+                                    log:
+                                      level: info
     - stage:
         name: SCS
         identifier: SCS
