@@ -271,7 +271,6 @@ pipeline:
                             level: info
                         tool:
                           suite_id: 2dbf201f-01c3-49ad-88d1-a214b793c976
-                          runner_id: a5449d28-5cea-5d1d-ad95-e6873ab70b89
         - stage:
             name: IaCM-Scan
             identifier: IaCMScan
