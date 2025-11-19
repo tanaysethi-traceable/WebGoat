@@ -409,4 +409,9 @@ pipeline:
                   timeout: 10m
                   spec:
                     command: apply
+                    target: []
+                    replace: []
+                  when:
+                    stageStatus: Success
+                    condition: "false"
         tags: {}
