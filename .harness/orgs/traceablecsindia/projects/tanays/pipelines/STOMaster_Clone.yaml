@@ -41,9 +41,9 @@ pipeline:
                   spec:
                     mode: generation
                     tool:
-                      type: Syft
+                      type: cdxgen
                       spec:
-                        format: spdx-json
+                        format: cyclonedx-json
                     source:
                       type: repository
                       spec:
