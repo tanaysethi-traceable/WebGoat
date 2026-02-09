@@ -72,6 +72,45 @@ pipeline:
                       log:
                         level: info
                 contextType: Pipeline
+              - step:
+                  type: HarnessSAST
+                  name: HarnessSAST_1
+                  identifier: HarnessSAST_1
+                  spec:
+                    target:
+                      detection: auto
+                      type: repository
+                    advanced:
+                      log:
+                        level: info
+                      args: {}
+                    mode: orchestration
+                    config: default
+                    tool:
+                      target_language: ""
+                      app_name: ""
+              - step:
+                  type: HarnessSCA
+                  name: HarnessSCA_1
+                  identifier: HarnessSCA_1
+                  spec:
+                    target:
+                      detection: auto
+                      type: container
+                    advanced:
+                      log:
+                        level: info
+                      args: {}
+                    privileged: true
+                    mode: orchestration
+                    config: default
+                    image:
+                      type: docker_v2
+                      name: tanaysethi-traceable/WebGoat
+                      tag: latest
+                      domain: github.com
+                    tool:
+                      app_name: ""
               - stepGroup:
                   name: Security Scans
                   identifier: Security_Scans
