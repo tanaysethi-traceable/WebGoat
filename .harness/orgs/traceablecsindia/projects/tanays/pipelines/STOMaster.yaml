@@ -249,8 +249,6 @@ pipeline:
                 override: true
               buildIntelligence:
                 enabled: true
-              infrastructure:
-                useFromStage: Build
               execution:
                 steps:
                   - step:
@@ -259,7 +257,7 @@ pipeline:
                       identifier: Traceable
                       spec:
                         auth:
-                          access_token: MTJmZDAxOTAtM2NmOC00NGMxLWE4YWItZjc3NDY3ZTA3MTk1
+                          access_token: MWVhMjY3OWYtMDI1NS00NTgzLWFkZDYtNTdjZmZhMTdmODAy
                           domain: https://api.apac.traceable.ai
                         mode: orchestration
                         config: default
@@ -271,6 +269,12 @@ pipeline:
                             level: info
                         tool:
                           suite_id: 2dbf201f-01c3-49ad-88d1-a214b793c976
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
         - stage:
             name: IaCM-Scan
             identifier: IaCMScan
