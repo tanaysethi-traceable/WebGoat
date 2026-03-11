@@ -35,6 +35,41 @@ pipeline:
                     shell: Sh
                     command: mvn clean package -Dmaven.test.skip=true
               - step:
+                  type: HarnessSCA
+                  name: HarnessSCA_2
+                  identifier: HarnessSCA_2
+                  spec:
+                    target:
+                      detection: auto
+                      type: container
+                    advanced:
+                      log:
+                        level: info
+                      args: {}
+                    privileged: true
+                    mode: orchestration
+                    config: default
+                    image:
+                      type: docker_v2
+                      name: tanayharness/webgoat
+                      tag: latest
+                      registry: tanays
+                    tool:
+                      app_name: ""
+              - step:
+                  type: HarnessSAST
+                  name: HarnessSAST_1
+                  identifier: HarnessSAST_1
+                  spec:
+                    mode: orchestration
+                    config: default
+                    target:
+                      type: repository
+                      detection: auto
+                    advanced:
+                      log:
+                        level: info
+              - step:
                   type: SscaOrchestration
                   name: SBOM Orchestration_1
                   identifier: SBOMOrchestration_1
@@ -72,79 +107,6 @@ pipeline:
                       log:
                         level: info
                 contextType: Pipeline
-              - step:
-                  type: HarnessSAST
-                  name: HarnessSAST_1
-                  identifier: HarnessSAST_1
-                  spec:
-                    target:
-                      detection: auto
-                      type: repository
-                    advanced:
-                      log:
-                        level: info
-                      args: {}
-                    mode: orchestration
-                    config: default
-                    tool:
-                      target_language: ""
-                      app_name: ""
-              - step:
-                  type: HarnessSCA
-                  name: HarnessSCA_1
-                  identifier: HarnessSCA_1
-                  spec:
-                    target:
-                      detection: auto
-                      type: container
-                    advanced:
-                      log:
-                        level: info
-                      args: {}
-                    privileged: true
-                    mode: orchestration
-                    config: default
-                    image:
-                      type: docker_v2
-                      name: tanaysethi-traceable/WebGoat
-                      tag: latest
-                      domain: github.com
-                    tool:
-                      app_name: ""
-              - stepGroup:
-                  name: Security Scans
-                  identifier: Security_Scans
-                  steps:
-                    - parallel:
-                        - step:
-                            type: OsvScanner
-                            name: OsvScanner_1
-                            identifier: OsvScanner_1
-                            spec:
-                              target:
-                                detection: auto
-                                type: repository
-                              advanced:
-                                log:
-                                  level: info
-                                args: {}
-                              mode: orchestration
-                              config: default
-                          contextType: Pipeline
-                        - step:
-                            type: Semgrep
-                            name: Semgrep_1
-                            identifier: Semgrep_1
-                            spec:
-                              target:
-                                detection: auto
-                                type: repository
-                              advanced:
-                                log:
-                                  level: info
-                                args: {}
-                              mode: orchestration
-                              config: default
               - step:
                   type: BuildAndPushDockerRegistry
                   name: Build
@@ -489,4 +451,4 @@ pipeline:
         tags: {}
   allowStageExecutions: true
   identifier: STOMaster_Clone
-  name: STO-Master - Clone
+  name: STO-Master -Harness Tools
