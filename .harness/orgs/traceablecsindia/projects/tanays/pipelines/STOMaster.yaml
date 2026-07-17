@@ -267,6 +267,9 @@ pipeline:
                             level: info
                         tool:
                           suite_id: 2dbf201f-01c3-49ad-88d1-a214b793c976
+                      when:
+                        stageStatus: Success
+                        condition: "false"
               platform:
                 os: Linux
                 arch: Amd64
