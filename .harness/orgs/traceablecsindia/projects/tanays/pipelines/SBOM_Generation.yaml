@@ -219,6 +219,36 @@ pipeline:
                       limits:
                         memory: 500Mi
                         cpu: "0.5"
+              - step:
+                  type: SscaCompliance
+                  name: SCS Compliance_1
+                  identifier: SCSCompliance_1
+                  spec:
+                    source:
+                      type: github
+                      spec:
+                        connectorRef: tanaysgithub
+                        repoName: webgoat
+                        scan_org: true
+                    resources:
+                      limits:
+                        memory: 500Mi
+                        cpu: "0.5"
+              - step:
+                  type: SscaCompliance
+                  name: SCS Compliance_2
+                  identifier: SCSCompliance_2
+                  spec:
+                    source:
+                      type: github
+                      spec:
+                        connectorRef: tanaysgithub
+                        repoName: Webgoat
+                        scan_org: true
+                    resources:
+                      limits:
+                        memory: 500Mi
+                        cpu: "0.5"
           platform:
             os: Linux
             arch: Amd64
@@ -232,128 +262,86 @@ pipeline:
               errors: []
               action:
                 type: Ignore
-    - parallel:
-        - stage:
-            name: DAST
-            identifier: DAST
-            description: ""
-            type: SecurityTests
-            spec:
-              cloneCodebase: true
-              caching:
-                enabled: true
-                override: true
-              buildIntelligence:
-                enabled: true
-              execution:
-                steps:
+    - stage:
+        name: IaCM-Scan
+        identifier: IaCMScan
+        description: ""
+        type: SecurityTests
+        spec:
+          cloneCodebase: false
+          caching:
+            enabled: true
+            override: true
+            paths: []
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - parallel:
                   - step:
-                      type: Traceable
-                      name: Traceable
-                      identifier: Traceable
+                      type: GitClone
+                      name: IaCM
+                      identifier: GitClone_1
                       spec:
-                        auth:
-                          access_token: MWVhMjY3OWYtMDI1NS00NTgzLWFkZDYtNTdjZmZhMTdmODAy
-                          domain: https://api.apac.traceable.ai
-                        mode: orchestration
-                        config: default
-                        target:
-                          type: instance
-                          detection: auto
-                        advanced:
-                          log:
-                            level: info
-                        tool:
-                          suite_id: 2dbf201f-01c3-49ad-88d1-a214b793c976
-                      when:
-                        stageStatus: Success
-                        condition: "false"
-              platform:
-                os: Linux
-                arch: Amd64
-              runtime:
-                type: Cloud
-                spec: {}
-        - stage:
-            name: IaCM-Scan
-            identifier: IaCMScan
-            description: ""
-            type: SecurityTests
-            spec:
-              cloneCodebase: false
-              caching:
-                enabled: true
-                override: true
-                paths: []
-              buildIntelligence:
-                enabled: true
-              platform:
-                os: Linux
-                arch: Amd64
-              runtime:
-                type: Cloud
-                spec: {}
-              execution:
-                steps:
-                  - parallel:
-                      - step:
-                          type: GitClone
-                          name: IaCM
-                          identifier: GitClone_1
+                        repoName: IaCM
+                        build:
+                          type: branch
                           spec:
-                            repoName: IaCM
-                            build:
-                              type: branch
-                              spec:
-                                branch: main
-                      - step:
-                          type: GitClone
-                          name: TFVARS
-                          identifier: TFVARS
+                            branch: main
+                  - step:
+                      type: GitClone
+                      name: TFVARS
+                      identifier: TFVARS
+                      spec:
+                        repoName: IaCM-TFVARS
+                        build:
+                          type: branch
                           spec:
-                            repoName: IaCM-TFVARS
-                            build:
-                              type: branch
-                              spec:
-                                branch: main
-                  - stepGroup:
-                      name: Scan
-                      identifier: Scan
-                      strategy:
-                        repeat:
-                          items:
-                            - /harness/IaCM-TFVARS
-                            - /harness/IaCM
-                      steps:
-                        - parallel:
-                            - step:
-                                type: Checkov
-                                name: Checkov
-                                identifier: Checkov
-                                spec:
-                                  mode: orchestration
-                                  config: default
-                                  target:
-                                    type: repository
-                                    workspace: <+repeat.item>
-                                    detection: auto
-                                  advanced:
-                                    log:
-                                      level: info
-                            - step:
-                                type: Gitleaks
-                                name: Gitleaks
-                                identifier: Gitleaks
-                                spec:
-                                  mode: orchestration
-                                  config: default
-                                  target:
-                                    type: repository
-                                    workspace: <+repeat.item>
-                                    detection: auto
-                                  advanced:
-                                    log:
-                                      level: info
+                            branch: main
+              - stepGroup:
+                  name: Scan
+                  identifier: Scan
+                  strategy:
+                    repeat:
+                      items:
+                        - /harness/IaCM-TFVARS
+                        - /harness/IaCM
+                  steps:
+                    - parallel:
+                        - step:
+                            type: Checkov
+                            name: Checkov
+                            identifier: Checkov
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: repository
+                                workspace: <+repeat.item>
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
+                        - step:
+                            type: Gitleaks
+                            name: Gitleaks
+                            identifier: Gitleaks
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: repository
+                                workspace: <+repeat.item>
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
     - stage:
         name: SCS
         identifier: SCS
