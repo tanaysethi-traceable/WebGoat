@@ -58,20 +58,6 @@ pipeline:
                       limits:
                         memory: 500Mi
                         cpu: "0.5"
-              - step:
-                  type: Gitleaks
-                  name: Gitleaks_1
-                  identifier: Gitleaks_1
-                  spec:
-                    mode: orchestration
-                    config: default
-                    target:
-                      type: repository
-                      detection: auto
-                    advanced:
-                      log:
-                        level: info
-                contextType: Pipeline
               - stepGroup:
                   name: Security Scans
                   identifier: Security_Scans
@@ -105,6 +91,20 @@ pipeline:
                               advanced:
                                 log:
                                   level: info
+                        - step:
+                            type: Gitleaks
+                            name: Gitleaks_1
+                            identifier: Gitleaks_1
+                            spec:
+                              mode: orchestration
+                              config: default
+                              target:
+                                type: repository
+                                detection: auto
+                              advanced:
+                                log:
+                                  level: info
+                          contextType: Pipeline
               - step:
                   type: BuildAndPushDockerRegistry
                   name: Build
