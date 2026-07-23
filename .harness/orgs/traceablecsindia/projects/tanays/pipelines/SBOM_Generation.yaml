@@ -43,6 +43,7 @@ pipeline:
                       type: Syft
                       spec:
                         format: spdx-json
+                        include_vuln: true
                     source:
                       type: repository
                       spec:
@@ -128,7 +129,7 @@ pipeline:
                         connector: dockerHubReadOnly
                         image: tanayharness/webgoat:latest
                     signing:
-                      type: cosign
+                      type: keybased
                       spec:
                         private_key: SBOM_Attest
                         password: SBOM_Attest_02
@@ -145,7 +146,7 @@ pipeline:
                         connector: dockerHubReadOnly
                         repo: tanayharness/webgoat:latest
                     attestation:
-                      type: cosign
+                      type: keybased
                       spec:
                         private_key: SBOM_Attest
                         password: SBOM_Attest_02
@@ -203,13 +204,14 @@ pipeline:
                       type: Syft
                       spec:
                         format: spdx-json
+                        include_vuln: true
                     source:
                       type: docker
                       spec:
                         connector: dockerHubReadOnly
                         image: tanayharness/webgoat:latest
                     attestation:
-                      type: cosign
+                      type: keybased
                       spec:
                         privateKey: SBOM_Attest
                         password: SBOM_Attest_02
@@ -366,13 +368,14 @@ pipeline:
                       type: Syft
                       spec:
                         format: spdx-json
+                        include_vuln: true
                     source:
                       type: docker
                       spec:
                         connector: dockerHubReadOnly
                         image: tanayharness/webgoat
                     attestation:
-                      type: cosign
+                      type: keybased
                       spec:
                         privateKey: SBOM_Attest
                         password: SBOM_Attest_02
