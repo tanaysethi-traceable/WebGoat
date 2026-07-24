@@ -329,7 +329,7 @@ pipeline:
                       - critical_vulnerability_enforcement
                     type: Custom
                     policySpec:
-                      payload: "[{\"vulnerability\":\"<<+pipeline.stages.Build.spec.execution.steps.Security_Scans.steps.Semgrep_1.output.outputVariables.HIGH\"}]"
+                      payload: "[{\"vulnerability\":\"<+pipeline.stages.Build.spec.execution.steps.Security_Scans.steps.Semgrep_1.output.outputVariables.HIGH>\"}]"
                   timeout: 10m
         tags: {}
     - stage:
