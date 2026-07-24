@@ -76,6 +76,9 @@ pipeline:
                               advanced:
                                 log:
                                   level: info
+                            when:
+                              stageStatus: Success
+                              condition: "false"
                           contextType: Pipeline
                         - step:
                             type: Semgrep
@@ -309,6 +312,26 @@ pipeline:
               errors: []
               action:
                 type: Ignore
+    - stage:
+        name: OPA-2
+        identifier: OPA2
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: Policy
+                  name: Policy_1
+                  identifier: Policy_1
+                  spec:
+                    policySets:
+                      - critical_vulnerability_enforcement
+                    type: Custom
+                    policySpec:
+                      payload: "[{\"vulnerability\":\"<<+pipeline.stages.Build.spec.execution.steps.Security_Scans.steps.Semgrep_1.output.outputVariables.HIGH\"}]"
+                  timeout: 10m
+        tags: {}
     - stage:
         name: IaCM-Scan
         identifier: IaCMScan
