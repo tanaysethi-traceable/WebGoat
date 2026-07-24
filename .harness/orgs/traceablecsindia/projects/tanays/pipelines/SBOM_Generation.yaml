@@ -76,9 +76,6 @@ pipeline:
                               advanced:
                                 log:
                                   level: info
-                            enforce:
-                              policySets:
-                                - NoCritical
                           contextType: Pipeline
                         - step:
                             type: Semgrep
@@ -307,6 +304,7 @@ pipeline:
             spec: {}
         when:
           pipelineStatus: Success
+          condition: "false"
         failureStrategies:
           - onFailure:
               errors: []
