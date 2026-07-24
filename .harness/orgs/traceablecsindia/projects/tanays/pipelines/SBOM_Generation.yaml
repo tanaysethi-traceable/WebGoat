@@ -271,6 +271,32 @@ pipeline:
                       limits:
                         memory: 500Mi
                         cpu: "0.5"
+              - step:
+                  type: SscaEnforcement
+                  name: SBOM Policy Enforcement_1
+                  identifier: SBOMPolicyEnforcement_1
+                  spec:
+                    source:
+                      type: docker
+                      spec:
+                        connector: dockerHubReadOnly
+                        image: webgoat
+                    policy:
+                      policySets:
+                        - account.testpolicyset
+                    resources:
+                      limits:
+                        memory: 500Mi
+                        cpu: "0.5"
+              - step:
+                  type: Run
+                  name: Run_2
+                  identifier: Run_2
+                  spec:
+                    shell: Sh
+                  enforce:
+                    policySets:
+                      - critical_vulnerability_enforcement
           platform:
             os: Linux
             arch: Amd64
