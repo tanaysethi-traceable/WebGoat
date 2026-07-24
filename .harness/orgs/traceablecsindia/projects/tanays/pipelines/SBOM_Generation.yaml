@@ -451,6 +451,26 @@ pipeline:
             type: Cloud
             spec: {}
     - stage:
+        name: OPA
+        identifier: OPA
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: Policy
+                  name: Policy_1
+                  identifier: Policy_1
+                  spec:
+                    policySets:
+                      - account.No_Cric
+                    type: Custom
+                    policySpec:
+                      payload: "[{<+pipeline.stages.Build.spec.execution.steps.Security_Scans.steps.OsvScanner_1.output.outputVariables.CRITICAL>}]"
+                  timeout: 10m
+        tags: {}
+    - stage:
         name: Deploy
         identifier: Deploy
         description: ""
