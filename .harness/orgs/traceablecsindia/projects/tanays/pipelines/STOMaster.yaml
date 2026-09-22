@@ -276,9 +276,6 @@ pipeline:
               runtime:
                 type: Cloud
                 spec: {}
-            when:
-              pipelineStatus: All
-              condition: "true"
         - stage:
             name: IaCM-Scan
             identifier: IaCMScan
