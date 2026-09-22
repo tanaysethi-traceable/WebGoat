@@ -87,63 +87,6 @@ pipeline:
             spec: {}
         when:
           pipelineStatus: All
-    - stage:
-        name: SCS
-        identifier: SCS
-        description: ""
-        type: SecurityTests
-        spec:
-          cloneCodebase: true
-          caching:
-            enabled: true
-            override: true
-          buildIntelligence:
-            enabled: true
-          execution:
-            steps:
-              - step:
-                  type: SscaOrchestration
-                  name: SBOM Orchestration_1
-                  identifier: SBOMOrchestration_1
-                  spec:
-                    mode: generation
-                    tool:
-                      type: Syft
-                      spec:
-                        format: spdx-json
-                    source:
-                      type: docker
-                      spec:
-                        connector: dockerHubReadOnly
-                        image: tanayharness/webgoat
-                    attestation:
-                      type: cosign
-                      spec:
-                        privateKey: SBOM_Attest
-                        password: SBOM_Attest_02
-                    sbom_drift:
-                      base: last_generated_sbom
-                    resources:
-                      limits:
-                        memory: 500Mi
-                        cpu: "0.5"
-              - step:
-                  type: SscaCompliance
-                  name: SCS Compliance_1
-                  identifier: SCSCompliance_1
-                  spec:
-                    source:
-                      type: github
-                      spec:
-                        connectorRef: tanaysgithub
-                        repoName: webgoat
-                        scan_org: true
-          platform:
-            os: Linux
-            arch: Amd64
-          runtime:
-            type: Cloud
-            spec: {}
   allowStageExecutions: true
   identifier: STOMaster_Clone
   name: STO-Master -Harness Tools
