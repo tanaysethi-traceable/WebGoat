@@ -67,7 +67,7 @@ pipeline:
                   identifier: Traceable
                   spec:
                     auth:
-                      access_token: MWVhMjY3OWYtMDI1NS00NTgzLWFkZDYtNTdjZmZhMTdmODAy
+                      access_token: MTNiNzA3ZjYtM2U4Yi00YWM3LWI4NDgtZTIzYWZhN2M2ZjI5
                       domain: https://api.apac.traceable.ai
                     mode: orchestration
                     config: default
@@ -78,7 +78,7 @@ pipeline:
                       log:
                         level: info
                     tool:
-                      suite_id: 2dbf201f-01c3-49ad-88d1-a214b793c976
+                      suite_id: 8d7635d0-2d08-4e55-8d10-09e80a6996b7
           platform:
             os: Linux
             arch: Amd64
