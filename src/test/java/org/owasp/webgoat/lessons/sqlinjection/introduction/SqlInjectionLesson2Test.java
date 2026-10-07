@@ -19,7 +19,7 @@ public class SqlInjectionLesson2Test extends LessonTest {
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack2")
-                .param("query", "SELECT department FROM employees WHERE userid=96134;"))
+                .param("userid", "96134"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
   }

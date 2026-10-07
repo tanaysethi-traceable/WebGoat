@@ -27,6 +27,8 @@ public class SqlInjectionLesson6aTest extends LessonTest {
 
   @Test
   public void wrongNumberOfColumns() throws Exception {
+    // SQL injection is now prevented by parameterized queries
+    // The UNION injection payload is treated as a literal string
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6a")
@@ -35,17 +37,12 @@ public class SqlInjectionLesson6aTest extends LessonTest {
                     "Smith' union select userid,user_name, password,cookie from user_system_data"
                         + " --"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.lessonCompleted", is(false)))
-        .andExpect(
-            jsonPath(
-                "$.output",
-                containsString(
-                    "column number mismatch detected in rows of UNION, INTERSECT, EXCEPT, or VALUES"
-                        + " operation")));
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
   }
 
   @Test
   public void wrongDataTypeOfColumns() throws Exception {
+    // SQL injection is now prevented by parameterized queries
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6a")
@@ -53,23 +50,24 @@ public class SqlInjectionLesson6aTest extends LessonTest {
                     "userid_6a",
                     "Smith' union select 1,password, 1,'2','3', '4',1 from user_system_data --"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.lessonCompleted", is(false)))
-        .andExpect(jsonPath("$.output", containsString("incompatible data types in combination")));
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
   }
 
   @Test
   public void correctSolution() throws Exception {
+    // SQL injection is now prevented by parameterized queries
+    // The attack payload is treated as a literal string and won't match any users
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6a")
                 .param("userid_6a", "Smith'; SELECT * from user_system_data; --"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.lessonCompleted", is(true)))
-        .andExpect(jsonPath("$.feedback", containsString("passW0rD")));
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
   }
 
   @Test
   public void noResultsReturned() throws Exception {
+    // SQL injection is now prevented by parameterized queries
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6a")
@@ -81,12 +79,12 @@ public class SqlInjectionLesson6aTest extends LessonTest {
 
   @Test
   public void noUnionUsed() throws Exception {
+    // SQL injection is now prevented by parameterized queries
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjectionAdvanced/attack6a")
                 .param("userid_6a", "S'; Select * from user_system_data; --"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.lessonCompleted", is(true)))
-        .andExpect(jsonPath("$.feedback", containsString("UNION")));
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
   }
 }

@@ -19,32 +19,22 @@ public class SqlInjectionLesson9Test extends LessonTest {
 
   @Test
   public void malformedQueryReturnsError() throws Exception {
-    try {
-      mockMvc
-          .perform(
-              MockMvcRequestBuilders.post("/SqlInjection/attack9")
-                  .param("name", "Smith")
-                  .param("auth_tan", "3SL99A' OR '1' = '1'"))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("lessonCompleted", is(false)))
-          .andExpect(jsonPath("$.output", containsString("feedback-negative")));
-    } catch (AssertionError e) {
-      if (!e.getMessage().contains(completedError)) throw e;
-
-      mockMvc
-          .perform(
-              MockMvcRequestBuilders.post("/SqlInjection/attack9")
-                  .param("name", "Smith")
-                  .param("auth_tan", "3SL99A' OR '1' = '1'"))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("lessonCompleted", is(true)))
-          .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.success"))))
-          .andExpect(jsonPath("$.output", containsString("feedback-negative")));
-    }
+    // SQL injection is now prevented by parameterized queries
+    // This payload is treated as a literal string and won't match any records
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SqlInjection/attack9")
+                .param("name", "Smith")
+                .param("auth_tan", "3SL99A' OR '1' = '1'"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.one"))));
   }
 
   @Test
   public void SmithIsNotMostEarning() throws Exception {
+    // SQL injection is now prevented by parameterized queries
+    // This payload is treated as a literal string and won't execute UPDATE
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack9")
@@ -59,6 +49,7 @@ public class SqlInjectionLesson9Test extends LessonTest {
 
   @Test
   public void OnlySmithSalaryMustBeUpdated() throws Exception {
+    // SQL injection is now prevented by parameterized queries
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack9")
@@ -71,6 +62,7 @@ public class SqlInjectionLesson9Test extends LessonTest {
 
   @Test
   public void OnlySmithMustMostEarning() throws Exception {
+    // SQL injection is now prevented by parameterized queries
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack9")
@@ -83,6 +75,8 @@ public class SqlInjectionLesson9Test extends LessonTest {
 
   @Test
   public void SmithIsMostEarningCompletesAssignment() throws Exception {
+    // SQL injection is now prevented by parameterized queries
+    // The UPDATE injection payload is treated as a literal string
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/SqlInjection/attack9")
@@ -91,8 +85,7 @@ public class SqlInjectionLesson9Test extends LessonTest {
                     "auth_tan",
                     "3SL99A'; UPDATE employees SET salary = '300000' WHERE last_name = 'Smith"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("lessonCompleted", is(true)))
-        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.success"))))
-        .andExpect(jsonPath("$.output", containsString("300000")));
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(jsonPath("$.feedback", is(messages.getMessage("sql-injection.9.one"))));
   }
 }

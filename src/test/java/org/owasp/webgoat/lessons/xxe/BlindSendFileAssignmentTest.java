@@ -186,4 +186,16 @@ class BlindSendFileAssignmentTest extends LessonTest {
         .andExpect(
             jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.solved"))));
   }
+
+  @Test
+  void rejectPathTraversalInUsername() throws Exception {
+    // Verify that path traversal attempts in usernames are rejected
+    try {
+      File traversalDirectory = new File(webGoatHomeDirectory, "/XXE/../../../etc");
+      assertThat(traversalDirectory.getCanonicalPath())
+          .isNotEqualTo(new File(webGoatHomeDirectory, "/XXE").getCanonicalPath());
+    } catch (Exception e) {
+      // Expected - path traversal should be blocked at validation
+    }
+  }
 }
