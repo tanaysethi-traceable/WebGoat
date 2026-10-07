@@ -36,4 +36,46 @@ public class SSRFTest2 extends LessonTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.lessonCompleted", is(false)));
   }
+
+  @Test
+  public void rejectLocalhost() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/SSRF/task2").param("url", "http://localhost"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
+
+  @Test
+  public void rejectPrivateIp() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/SSRF/task2").param("url", "http://192.168.1.1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
+
+  @Test
+  public void rejectMetadataEndpoint() throws Exception {
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/SSRF/task2")
+                .param("url", "http://169.254.169.254"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
+
+  @Test
+  public void rejectInvalidScheme() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/SSRF/task2").param("url", "file:///etc/passwd"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
+
+  @Test
+  public void rejectNotAllowlistedHost() throws Exception {
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/SSRF/task2").param("url", "http://google.com"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
 }
