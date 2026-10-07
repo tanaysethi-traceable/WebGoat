@@ -97,8 +97,12 @@ public class CSRFIntegrationTest extends IntegrationTest {
 
     // remove any left over html
     Path webWolfFilePath = Paths.get(webwolfFileDir);
-    if (webWolfFilePath.resolve(Paths.get(this.getUser(), htmlName)).toFile().exists()) {
-      Files.delete(webWolfFilePath.resolve(Paths.get(this.getUser(), htmlName)));
+    // Validate paths to prevent traversal (test fixture: getUser() returns hardcoded "webgoat")
+    String username = this.getUser();
+    validatePathSegment(username);
+    validatePathSegment(htmlName);
+    if (webWolfFilePath.resolve(Paths.get(username, htmlName)).toFile().exists()) {
+      Files.delete(webWolfFilePath.resolve(Paths.get(username, htmlName)));
     }
 
     // upload trick html
@@ -283,5 +287,21 @@ public class CSRFIntegrationTest extends IntegrationTest {
         .formParam("matchingPassword", "password")
         .formParam("agree", "agree")
         .post(webGoatUrlConfig.url("register.mvc"));
+  }
+
+  /**
+   * Validates that a path segment doesn't contain path traversal sequences.
+   * Rejects paths containing "..", absolute paths, or other traversal attempts.
+   */
+  private void validatePathSegment(String pathSegment) {
+    if (pathSegment == null || pathSegment.isEmpty()) {
+      throw new IllegalArgumentException("Path segment cannot be null or empty");
+    }
+    if (pathSegment.contains("..") || pathSegment.contains("/") || pathSegment.contains("\\")) {
+      throw new IllegalArgumentException("Path segment contains invalid characters");
+    }
+    if (new java.io.File(pathSegment).isAbsolute()) {
+      throw new IllegalArgumentException("Absolute paths are not allowed");
+    }
   }
 }

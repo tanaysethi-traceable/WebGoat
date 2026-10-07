@@ -53,7 +53,10 @@ public class BlindSendFileAssignment implements AssignmentEndpoint, Initializabl
   private void createSecretFileWithRandomContents(WebGoatUser user) {
     var fileContents = "WebGoat 8.0 rocks... (" + randomAlphabetic(10) + ")";
     userToFileContents.put(user, fileContents);
-    File targetDirectory = new File(webGoatHomeDirectory, "/XXE/" + user.getUsername());
+    // Validate username to prevent path traversal
+    String username = user.getUsername();
+    validatePathSegment(username);
+    File targetDirectory = new File(webGoatHomeDirectory, "/XXE/" + username);
     if (!targetDirectory.exists()) {
       targetDirectory.mkdirs();
     }
@@ -61,6 +64,22 @@ public class BlindSendFileAssignment implements AssignmentEndpoint, Initializabl
       Files.writeString(new File(targetDirectory, "secret.txt").toPath(), fileContents, UTF_8);
     } catch (IOException e) {
       log.error("Unable to write 'secret.txt' to '{}", targetDirectory);
+    }
+  }
+
+  /**
+   * Validates that a path segment doesn't contain path traversal sequences.
+   * Rejects paths containing "..", absolute paths, or other traversal attempts.
+   */
+  private void validatePathSegment(String pathSegment) {
+    if (pathSegment == null || pathSegment.isEmpty()) {
+      throw new IllegalArgumentException("Path segment cannot be null or empty");
+    }
+    if (pathSegment.contains("..") || pathSegment.contains("/") || pathSegment.contains("\\")) {
+      throw new IllegalArgumentException("Path segment contains invalid characters");
+    }
+    if (new File(pathSegment).isAbsolute()) {
+      throw new IllegalArgumentException("Absolute paths are not allowed");
     }
   }
 

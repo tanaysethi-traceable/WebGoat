@@ -77,12 +77,30 @@ public class ProfileUploadBase implements AssignmentEndpoint {
 
   @SneakyThrows
   protected File cleanupAndCreateDirectoryForUser(String username) {
+    // Validate username to prevent path traversal
+    validatePathSegment(username);
     var uploadDirectory = new File(this.webGoatHomeDirectory, "/PathTraversal/" + username);
     if (uploadDirectory.exists()) {
       FileSystemUtils.deleteRecursively(uploadDirectory);
     }
     Files.createDirectories(uploadDirectory.toPath());
     return uploadDirectory;
+  }
+
+  /**
+   * Validates that a path segment doesn't contain path traversal sequences.
+   * Rejects paths containing "..", absolute paths, or other traversal attempts.
+   */
+  protected void validatePathSegment(String pathSegment) {
+    if (pathSegment == null || pathSegment.isEmpty()) {
+      throw new IllegalArgumentException("Path segment cannot be null or empty");
+    }
+    if (pathSegment.contains("..") || pathSegment.contains("/") || pathSegment.contains("\\")) {
+      throw new IllegalArgumentException("Path segment contains invalid characters");
+    }
+    if (new File(pathSegment).isAbsolute()) {
+      throw new IllegalArgumentException("Absolute paths are not allowed");
+    }
   }
 
   private boolean attemptWasMade(File expectedUploadDirectory, File uploadedFile)
@@ -110,6 +128,8 @@ public class ProfileUploadBase implements AssignmentEndpoint {
   }
 
   protected byte[] getProfilePictureAsBase64(String username) {
+    // Validate username to prevent path traversal
+    validatePathSegment(username);
     var profilePictureDirectory = new File(this.webGoatHomeDirectory, "/PathTraversal/" + username);
     var profileDirectoryFiles = profilePictureDirectory.listFiles();
 

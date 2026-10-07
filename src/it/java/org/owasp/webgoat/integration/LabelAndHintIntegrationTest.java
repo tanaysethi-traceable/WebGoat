@@ -162,6 +162,8 @@ public class LabelAndHintIntegrationTest extends IntegrationTest {
     if (lang == null || lang.equals("")) {
       lang = "";
     } else {
+      // Validate language parameter to prevent path traversal
+      validateLanguageCode(lang);
       lang = "_" + lang;
     }
     try (InputStream input =
@@ -174,6 +176,19 @@ public class LabelAndHintIntegrationTest extends IntegrationTest {
       e.printStackTrace();
     }
     return prop;
+  }
+
+  /**
+   * Validates language code to prevent path traversal in file paths.
+   * Only allows alphanumeric characters and underscores.
+   */
+  private void validateLanguageCode(String lang) {
+    if (lang == null || lang.isEmpty()) {
+      throw new IllegalArgumentException("Language code cannot be null or empty");
+    }
+    if (!lang.matches("^[a-zA-Z0-9_-]+$")) {
+      throw new IllegalArgumentException("Invalid language code format");
+    }
   }
 
   private void checkLang(Properties propsDefault, String lang) {
