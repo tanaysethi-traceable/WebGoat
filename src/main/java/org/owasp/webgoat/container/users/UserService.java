@@ -50,8 +50,14 @@ public class UserService implements UserDetailsService {
   }
 
   private void createLessonsForUser(WebGoatUser webGoatUser) {
-    jdbcTemplate.execute("CREATE SCHEMA \"" + webGoatUser.getUsername() + "\" authorization dba");
-    flywayLessons.apply(webGoatUser.getUsername()).migrate();
+    // Use identifier quoting to prevent SQL injection in schema name
+    String username = webGoatUser.getUsername();
+    // Validate username to prevent injection via identifier names
+    if (!username.matches("^[a-zA-Z0-9_]+$")) {
+      throw new IllegalArgumentException("Invalid username: contains invalid characters");
+    }
+    jdbcTemplate.execute("CREATE SCHEMA \"" + username + "\" authorization dba");
+    flywayLessons.apply(username).migrate();
   }
 
   public List<WebGoatUser> getAllUsers() {

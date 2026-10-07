@@ -28,7 +28,12 @@ public class LessonConnectionInvocationHandler implements InvocationHandler {
     var authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication != null && authentication.getPrincipal() instanceof WebGoatUser user) {
       try (var statement = targetConnection.createStatement()) {
-        statement.execute("SET SCHEMA \"" + user.getUsername() + "\"");
+        // Validate username to prevent SQL injection in schema name
+        String username = user.getUsername();
+        if (!username.matches("^[a-zA-Z0-9_]+$")) {
+          throw new IllegalArgumentException("Invalid username: contains invalid characters");
+        }
+        statement.execute("SET SCHEMA \"" + username + "\"");
       }
     }
     try {
