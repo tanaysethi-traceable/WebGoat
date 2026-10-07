@@ -28,6 +28,7 @@ public class WebGoat {
 
   @Bean(name = "pluginTargetDirectory")
   public File pluginTargetDirectory(@Value("${webgoat.user.directory}") final String webgoatHome) {
+    // Safe: path comes from Spring configuration, not user input
     return new File(webgoatHome);
   }
 

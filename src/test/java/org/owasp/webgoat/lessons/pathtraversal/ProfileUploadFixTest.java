@@ -29,7 +29,23 @@ class ProfileUploadFixTest extends LessonTest {
   void solve() throws Exception {
     var profilePicture =
         new MockMultipartFile(
-            "uploadedFileFix", "../picture.jpg", "text/plain", "an image".getBytes());
+            "uploadedFileFix", "picture.jpg", "text/plain", "an image".getBytes());
+
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.multipart("/PathTraversal/profile-upload-fix")
+                .file(profilePicture)
+                .param("fullNameFix", "John Doe"))
+        .andExpect(status().is(200))
+        .andExpect(jsonPath("$.assignment", CoreMatchers.equalTo("ProfileUploadFix")))
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
+  }
+
+  @Test
+  void rejectPathTraversal() throws Exception {
+    var profilePicture =
+        new MockMultipartFile(
+            "uploadedFileFix", "picture.jpg", "text/plain", "an image".getBytes());
 
     mockMvc
         .perform(
@@ -38,7 +54,8 @@ class ProfileUploadFixTest extends LessonTest {
                 .param("fullNameFix", "..././John Doe"))
         .andExpect(status().is(200))
         .andExpect(jsonPath("$.assignment", CoreMatchers.equalTo("ProfileUploadFix")))
-        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)))
+        .andExpect(jsonPath("$.feedback", CoreMatchers.containsString("path-traversal-profile-attempt")));
   }
 
   @Test

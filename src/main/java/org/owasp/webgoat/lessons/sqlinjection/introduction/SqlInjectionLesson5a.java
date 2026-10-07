@@ -7,7 +7,12 @@ package org.owasp.webgoat.lessons.sqlinjection.introduction;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.success;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import org.owasp.webgoat.container.LessonDataSource;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.container.assignments.AssignmentHints;
@@ -42,14 +47,13 @@ public class SqlInjectionLesson5a implements AssignmentEndpoint {
   }
 
   protected AttackResult injectableQuery(String accountName) {
-    String query = "";
+    String query = "SELECT * FROM user_data WHERE first_name = 'John' and last_name = ?";
     try (Connection connection = dataSource.getConnection()) {
-      query =
-          "SELECT * FROM user_data WHERE first_name = 'John' and last_name = '" + accountName + "'";
-      try (Statement statement =
-          connection.createStatement(
-              ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-        ResultSet results = statement.executeQuery(query);
+      try (PreparedStatement statement =
+          connection.prepareStatement(
+              query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+        statement.setString(1, accountName);
+        ResultSet results = statement.executeQuery();
 
         if ((results != null) && (results.first())) {
           ResultSetMetaData resultsMetaData = results.getMetaData();
@@ -62,25 +66,25 @@ public class SqlInjectionLesson5a implements AssignmentEndpoint {
           if (results.getRow() >= 6) {
             return success(this)
                 .feedback("sql-injection.5a.success")
-                .output("Your query was: " + query + EXPLANATION)
+                .output("Your query was: " + query.replace("?", "'" + accountName + "'") + EXPLANATION)
                 .feedbackArgs(output.toString())
                 .build();
           } else {
-            return failed(this).output(output.toString() + "<br> Your query was: " + query).build();
+            return failed(this).output(output.toString() + "<br> Your query was: " + query.replace("?", "'" + accountName + "'")).build();
           }
         } else {
           return failed(this)
               .feedback("sql-injection.5a.no.results")
-              .output("Your query was: " + query)
+              .output("Your query was: " + query.replace("?", "'" + accountName + "'"))
               .build();
         }
       } catch (SQLException sqle) {
-        return failed(this).output(sqle.getMessage() + "<br> Your query was: " + query).build();
+        return failed(this).output(sqle.getMessage() + "<br> Your query was: " + query.replace("?", "'" + accountName + "'")).build();
       }
     } catch (Exception e) {
       return failed(this)
           .output(
-              this.getClass().getName() + " : " + e.getMessage() + "<br> Your query was: " + query)
+              this.getClass().getName() + " : " + e.getMessage() + "<br> Your query was: " + query.replace("?", "'" + accountName + "'"))
           .build();
     }
   }

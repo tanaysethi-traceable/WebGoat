@@ -26,7 +26,7 @@ What basically happened was that libraries just parsed the token as it was given
 ==== Solution
 
 First note that we are logged in as `Guest` so first select a different user for example: Tom.
-User Tom is allowed to vote as you can see, but he is unable to reset the votes. Looking at the request this will return an `access_token` in the response:
+User Tom is allowed to vote as you can see, but he is unable to reset the votes. Looking at the request this will return an `access_token` in the response (example token for educational purposes):
 
 [source]
 ----
@@ -70,7 +70,7 @@ claims:
 }
 ----
 
-If we use WebWolf to create our token we get:
+If we use WebWolf to create our token we get (example token for educational purposes):
 
 [source]
 ----

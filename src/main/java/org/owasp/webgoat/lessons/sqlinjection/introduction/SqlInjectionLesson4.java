@@ -10,6 +10,7 @@ import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.success;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -35,24 +36,32 @@ public class SqlInjectionLesson4 implements AssignmentEndpoint {
 
   @PostMapping("/SqlInjection/attack4")
   @ResponseBody
-  public AttackResult completed(@RequestParam String query) {
-    return injectableQuery(query);
+  public AttackResult completed(@RequestParam String column_name) {
+    return injectableQuery(column_name);
   }
 
-  protected AttackResult injectableQuery(String query) {
+  protected AttackResult injectableQuery(String column_name) {
     try (Connection connection = dataSource.getConnection()) {
-      try (Statement statement =
-          connection.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)) {
-        statement.executeUpdate(query);
+      try {
+        // Validate column name to prevent injection
+        if (!column_name.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
+          return failed(this).output("Invalid column name").build();
+        }
+        String query = "ALTER TABLE employees ADD COLUMN " + column_name + " VARCHAR(50)";
+        try (Statement statement = connection.createStatement()) {
+          statement.executeUpdate(query);
+        }
         connection.commit();
-        ResultSet results = statement.executeQuery("SELECT phone from employees;");
-        StringBuilder output = new StringBuilder();
-        // user completes lesson if column phone exists
-        if (results.first()) {
-          output.append("<span class='feedback-positive'>" + query + "</span>");
-          return success(this).output(output.toString()).build();
-        } else {
-          return failed(this).output(output.toString()).build();
+        try (Statement checkStatement = connection.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)) {
+          ResultSet results = checkStatement.executeQuery("SELECT phone from employees;");
+          StringBuilder output = new StringBuilder();
+          // user completes lesson if column phone exists
+          if (results.first()) {
+            output.append("<span class='feedback-positive'>" + query + "</span>");
+            return success(this).output(output.toString()).build();
+          } else {
+            return failed(this).output(output.toString()).build();
+          }
         }
       } catch (SQLException sqle) {
         return failed(this).output(sqle.getMessage()).build();

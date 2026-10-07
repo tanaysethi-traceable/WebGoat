@@ -9,6 +9,7 @@ import static org.owasp.webgoat.container.assignments.AttackResultBuilder.succes
 
 import jakarta.annotation.PostConstruct;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -52,26 +53,36 @@ public class SqlInjectionLesson5 implements AssignmentEndpoint {
 
   @PostMapping("/SqlInjection/attack5")
   @ResponseBody
-  public AttackResult completed(String query) {
+  public AttackResult completed(@RequestParam String privilege, @RequestParam String grantee) {
     createUser();
-    return injectableQuery(query);
+    return injectableQuery(privilege, grantee);
   }
 
-  protected AttackResult injectableQuery(String query) {
+  protected AttackResult injectableQuery(String privilege, String grantee) {
     try (Connection connection = dataSource.getConnection()) {
-      try (Statement statement =
-          connection.createStatement(
-              ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-        statement.executeQuery(query);
+      try {
+        // Validate privilege and grantee to prevent injection
+        if (!privilege.matches("(?i)^[A-Z_,\\s]+$")) {
+          return failed(this).output("Invalid privilege specification").build();
+        }
+        if (!grantee.matches("(?i)^[A-Z_0-9]+$")) {
+          return failed(this).output("Invalid grantee name").build();
+        }
+        String query = "GRANT " + privilege + " ON GRANT_RIGHTS TO " + grantee;
+        try (Statement statement = connection.createStatement()) {
+          statement.execute(query);
+        }
         if (checkSolution(connection)) {
           return success(this).build();
         }
         return failed(this).output("Your query was: " + query).build();
+      } catch (SQLException sqle) {
+        return failed(this).output(sqle.getMessage()).build();
       }
     } catch (Exception e) {
       return failed(this)
           .output(
-              this.getClass().getName() + " : " + e.getMessage() + "<br> Your query was: " + query)
+              this.getClass().getName() + " : " + e.getMessage())
           .build();
     }
   }

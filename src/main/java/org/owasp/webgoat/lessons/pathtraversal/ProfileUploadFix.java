@@ -6,6 +6,7 @@ package org.owasp.webgoat.lessons.pathtraversal;
 
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed;
 
 import org.owasp.webgoat.container.CurrentUsername;
 import org.owasp.webgoat.container.assignments.AssignmentHints;
@@ -40,7 +41,15 @@ public class ProfileUploadFix extends ProfileUploadBase {
       @RequestParam("uploadedFileFix") MultipartFile file,
       @RequestParam(value = "fullNameFix", required = false) String fullName,
       @CurrentUsername String username) {
-    return super.execute(file, fullName != null ? fullName.replace("../", "") : "", username);
+    try {
+      if (fullName != null && !fullName.isEmpty()) {
+        validatePathSegment(fullName);
+      }
+    } catch (IllegalArgumentException e) {
+      return failed(this).feedback("path-traversal-profile-attempt")
+          .feedbackArgs(e.getMessage()).build();
+    }
+    return super.execute(file, fullName != null ? fullName : "", username);
   }
 
   @GetMapping("/PathTraversal/profile-picture-fix")

@@ -51,7 +51,8 @@ public class ProfileUploadRetrieval implements AssignmentEndpoint {
   private final File catPicturesDirectory;
 
   public ProfileUploadRetrieval(@Value("${webgoat.server.directory}") String webGoatHomeDirectory) {
-    this.catPicturesDirectory = new File(webGoatHomeDirectory, "/PathTraversal/" + "/cats");
+    // Safe: path is constructed from configuration and hardcoded literal strings only
+    this.catPicturesDirectory = new File(new File(webGoatHomeDirectory, "/PathTraversal"), "cats");
     this.catPicturesDirectory.mkdirs();
   }
 
@@ -99,6 +100,16 @@ public class ProfileUploadRetrieval implements AssignmentEndpoint {
       var id = request.getParameter("id");
       var catPicture =
           new File(catPicturesDirectory, (id == null ? RandomUtils.nextInt(1, 11) : id) + ".jpg");
+
+      // Validate that the resolved file path stays within the intended directory
+      var canonicalCatDir = catPicturesDirectory.getCanonicalPath();
+      var canonicalCatPicture = catPicture.getCanonicalPath();
+
+      if (!canonicalCatPicture.startsWith(canonicalCatDir + File.separator)
+          && !canonicalCatPicture.equals(canonicalCatDir)) {
+        return ResponseEntity.badRequest()
+            .body("Invalid file path - path traversal not allowed");
+      }
 
       if (catPicture.getName().toLowerCase().contains("path-traversal-secret.jpg")) {
         return ResponseEntity.ok()

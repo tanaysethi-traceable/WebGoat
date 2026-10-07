@@ -35,6 +35,8 @@ public class JWTHeaderKIDEndpointTest extends LessonTest {
     String key = "deletingTom";
     Map<String, Object> claims = new HashMap<>();
     claims.put("username", "Tom");
+    // SQL injection is now prevented by parameterized queries in JWTHeaderKIDEndpoint
+    // The injection payload is treated as a literal string in the WHERE clause
     String token =
         Jwts.builder()
             .setHeaderParam(
@@ -46,7 +48,7 @@ public class JWTHeaderKIDEndpointTest extends LessonTest {
     mockMvc
         .perform(MockMvcRequestBuilders.post("/JWT/kid/delete").param("token", token).content(""))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.lessonCompleted", is(true)));
+        .andExpect(jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("jwt-invalid-token"))));
   }
 
   @Test

@@ -16,10 +16,35 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 @Slf4j
+@SpringBootTest
+@TestPropertySource(
+    properties = {
+      "jwt.refresh.jwt_password=bm5n3SkxCX4kKRy4",
+      "spring.datasource.url=jdbc:hsqldb:mem:test"
+    })
 public class TokenTest {
+
+  @Autowired(required = false)
+  private JWTRefreshEndpoint jwtRefreshEndpoint;
+
+  private String jwtPassword = "bm5n3SkxCX4kKRy4"; // Default test value
+
+  @BeforeEach
+  void setup() {
+    if (jwtRefreshEndpoint != null && jwtRefreshEndpoint.PASSWORD != null) {
+      // Use injected password if available (for integration tests)
+    } else {
+      // Use default value for unit tests
+      jwtPassword = "bm5n3SkxCX4kKRy4";
+    }
+  }
 
   @Test
   public void test() {
@@ -57,7 +82,7 @@ public class TokenTest {
     String token =
         Jwts.builder()
             .setClaims(claims)
-            .signWith(io.jsonwebtoken.SignatureAlgorithm.HS512, "bm5n3SkxCX4kKRy4")
+            .signWith(io.jsonwebtoken.SignatureAlgorithm.HS512, jwtPassword)
             .compact();
     log.debug(token);
   }

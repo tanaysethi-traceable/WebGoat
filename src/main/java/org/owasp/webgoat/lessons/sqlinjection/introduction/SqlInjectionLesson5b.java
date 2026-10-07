@@ -42,7 +42,7 @@ public class SqlInjectionLesson5b implements AssignmentEndpoint {
   }
 
   protected AttackResult injectableQuery(String login_count, String accountName) {
-    String queryString = "SELECT * From user_data WHERE Login_Count = ? and userid= " + accountName;
+    String queryString = "SELECT * From user_data WHERE Login_Count = ? and userid = ?";
     try (Connection connection = dataSource.getConnection()) {
       PreparedStatement query =
           connection.prepareStatement(
@@ -58,11 +58,12 @@ public class SqlInjectionLesson5b implements AssignmentEndpoint {
                     + login_count
                     + " to a number"
                     + "<br> Your query was: "
-                    + queryString.replace("?", login_count))
+                    + queryString.replace("?", login_count).replace("?", accountName))
             .build();
       }
 
       query.setInt(1, count);
+      query.setString(2, accountName);
       // String query = "SELECT * FROM user_data WHERE Login_Count = " + login_count + " and userid
       // = " + accountName, ;
       try {

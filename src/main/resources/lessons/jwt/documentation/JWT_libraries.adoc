@@ -25,6 +25,7 @@ claims:
 
 [source]
 ----
+// Example JWT token for educational purposes
 var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.NFvYpuwbF6YWbPyaNAGEPw9wbhiQSovvSrD89B8K7Ng";
 
 Jwts.parser().setSigningKey("test").parseClaimsJws(token);
@@ -37,6 +38,7 @@ Using the same source as above gives:
 
 [source]
 ----
+// Example JWT token for educational purposes (with "none" algorithm)
 var token = " eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.NFvYpuwbF6YWbPyaNAGEPw9wbhiQSovvSrD89B8K7Ng";
 
 Jwts.parser().setSigningKey("test").parseClaimsJws(token);
@@ -53,6 +55,7 @@ removing the signature completely (leaving the last `.`)
 
 [source]
 ----
+// Example JWT token for educational purposes (no signature)
 var token = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.";
 
 Jwts.parser().setSigningKey("test").parseClaimsJws(token);

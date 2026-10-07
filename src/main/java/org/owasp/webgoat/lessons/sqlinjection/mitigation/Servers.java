@@ -6,6 +6,7 @@ package org.owasp.webgoat.lessons.sqlinjection.mitigation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,9 @@ public class Servers {
     private String description;
   }
 
+  private static final Set<String> ALLOWED_COLUMNS =
+      Set.of("id", "hostname", "ip", "mac", "status", "description");
+
   public Servers(LessonDataSource dataSource) {
     this.dataSource = dataSource;
   }
@@ -44,6 +48,11 @@ public class Servers {
   @ResponseBody
   public List<Server> sort(@RequestParam String column) throws Exception {
     List<Server> servers = new ArrayList<>();
+
+    // Validate column name against allowlist to prevent SQL injection in ORDER BY clause
+    if (column == null || !ALLOWED_COLUMNS.contains(column.toLowerCase())) {
+      column = "id"; // Default to 'id' if invalid
+    }
 
     try (var connection = dataSource.getConnection()) {
       try (var statement =

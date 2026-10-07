@@ -42,9 +42,10 @@ class JWTHeaderJKUEndpointTest extends LessonTest {
   }
 
   private void setupWebWolf() {
-    this.webwolfServer = new WireMockServer(options().dynamicPort());
+    // Use port 8080 to match the allowlisted port in JWTHeaderJKUEndpoint
+    this.webwolfServer = new WireMockServer(options().port(8080));
     webwolfServer.start();
-    this.port = webwolfServer.port();
+    this.port = 8080;
   }
 
   private KeyPair generateRsaKey() throws Exception {
@@ -68,6 +69,42 @@ class JWTHeaderJKUEndpointTest extends LessonTest {
   @DisplayName("When JWKS is not present in WebWolf then the call should fail")
   void shouldFailNotPresent() throws Exception {
     var token = createTokenAndSignIt();
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/JWT/jku/delete").param("token", token).content(""))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
+
+  @Test
+  @DisplayName("Should reject tokens with non-allowlisted hosts to prevent SSRF")
+  void shouldRejectNonAllowlistedHost() throws Exception {
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("username", "Tom");
+    var token =
+        Jwts.builder()
+            .setHeaderParam("jku", "http://attacker.com/jwks")
+            .setClaims(claims)
+            .signWith(RS256, this.keyPair.getPrivate())
+            .compact();
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/JWT/jku/delete").param("token", token).content(""))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.lessonCompleted", is(false)));
+  }
+
+  @Test
+  @DisplayName("Should reject tokens with internal IP addresses to prevent SSRF")
+  void shouldRejectInternalIpAddress() throws Exception {
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("username", "Tom");
+    var token =
+        Jwts.builder()
+            .setHeaderParam("jku", "http://192.168.1.1:8080/jwks")
+            .setClaims(claims)
+            .signWith(RS256, this.keyPair.getPrivate())
+            .compact();
 
     mockMvc
         .perform(MockMvcRequestBuilders.post("/JWT/jku/delete").param("token", token).content(""))
