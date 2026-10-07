@@ -29,39 +29,43 @@ class ProfileUploadTest extends LessonTest {
   void solve() throws Exception {
     var profilePicture =
         new MockMultipartFile(
-            "uploadedFile", "../picture.jpg", "text/plain", "an image".getBytes());
+            "uploadedFile", "picture.jpg", "text/plain", "an image".getBytes());
 
     mockMvc
         .perform(
             MockMvcRequestBuilders.multipart("/PathTraversal/profile-upload")
                 .file(profilePicture)
-                .param("fullName", "../John Doe"))
+                .param("fullName", "John Doe"))
         .andExpect(status().is(200))
         .andExpect(jsonPath("$.assignment", CoreMatchers.equalTo("ProfileUpload")))
-        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
-  }
-
-  @Test
-  @WithWebGoatUser
-  void attemptWithWrongDirectory() throws Exception {
-    var profilePicture =
-        new MockMultipartFile(
-            "uploadedFile", "../picture.jpg", "text/plain", "an image".getBytes());
-
-    mockMvc
-        .perform(
-            MockMvcRequestBuilders.multipart("/PathTraversal/profile-upload")
-                .file(profilePicture)
-                .param("fullName", "../../" + "test"))
-        .andExpect(status().is(200))
-        .andExpect(jsonPath("$.assignment", CoreMatchers.equalTo("ProfileUpload")))
-        .andExpect(jsonPath("$.feedback", CoreMatchers.containsString("Nice try")))
+        .andExpect(
+            jsonPath(
+                "$.feedback",
+                CoreMatchers.containsStringIgnoringCase("updated")))
         .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
   }
 
   @Test
   @WithWebGoatUser
-  void shouldNotOverrideExistingFile() throws Exception {
+  void attemptWithTraversalIsRejected() throws Exception {
+    var profilePicture =
+        new MockMultipartFile(
+            "uploadedFile", "picture.jpg", "text/plain", "an image".getBytes());
+
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.multipart("/PathTraversal/profile-upload")
+                .file(profilePicture)
+                .param("fullName", "../test"))
+        .andExpect(status().is(200))
+        .andExpect(jsonPath("$.assignment", CoreMatchers.equalTo("ProfileUpload")))
+        .andExpect(jsonPath("$.feedback", CoreMatchers.containsString("path-traversal-profile-attempt")))
+        .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(false)));
+  }
+
+  @Test
+  @WithWebGoatUser
+  void shouldRejectPathTraversal() throws Exception {
     var profilePicture =
         new MockMultipartFile("uploadedFile", "picture.jpg", "text/plain", "an image".getBytes());
     mockMvc
@@ -71,10 +75,8 @@ class ProfileUploadTest extends LessonTest {
                 .param("fullName", ".." + File.separator + "test"))
         .andExpect(
             jsonPath(
-                "$.output",
-                CoreMatchers.anyOf(
-                    CoreMatchers.containsString("Is a directory"),
-                    CoreMatchers.containsString("..\\\\" + "test"))))
+                "$.feedback",
+                CoreMatchers.containsString("path-traversal-profile-attempt")))
         .andExpect(status().is(200));
   }
 

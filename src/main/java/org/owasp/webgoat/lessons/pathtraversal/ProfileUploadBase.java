@@ -6,7 +6,6 @@ package org.owasp.webgoat.lessons.pathtraversal;
 
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.failed;
 import static org.owasp.webgoat.container.assignments.AttackResultBuilder.informationMessage;
-import static org.owasp.webgoat.container.assignments.AttackResultBuilder.success;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,13 +47,15 @@ public class ProfileUploadBase implements AssignmentEndpoint {
     File uploadDirectory = cleanupAndCreateDirectoryForUser(username);
 
     try {
-      var uploadedFile = new File(uploadDirectory, fullName);
+      // Canonicalize fullName and validate it doesn't escape the upload directory
+      File uploadedFile = validateAndResolveUploadPath(uploadDirectory, fullName);
+      if (uploadedFile == null) {
+        return failed(this).feedback("path-traversal-profile-attempt").build();
+      }
+
       uploadedFile.createNewFile();
       FileCopyUtils.copy(file.getBytes(), uploadedFile);
 
-      if (attemptWasMade(uploadDirectory, uploadedFile)) {
-        return solvedIt(uploadedFile);
-      }
       return informationMessage(this)
           .feedback("path-traversal-profile-updated")
           .feedbackArgs(uploadedFile.getAbsoluteFile())
@@ -65,9 +66,33 @@ public class ProfileUploadBase implements AssignmentEndpoint {
     }
   }
 
+  /**
+   * Sanitizes a path segment to prevent directory traversal attacks. Removes or replaces
+   * characters that could be used to escape the intended directory.
+   *
+   * @param pathSegment the path segment to sanitize (e.g., username)
+   * @return a sanitized path segment safe for use in file paths
+   */
+  private String sanitizePathSegment(String pathSegment) {
+    if (pathSegment == null || pathSegment.isEmpty()) {
+      return "default";
+    }
+    // Remove path traversal sequences
+    return pathSegment.replaceAll("\\.\\.[\\\\/]|[\\\\/]\\.\\.|\\.\\.|[\\\\/]", "_");
+  }
+
   @SneakyThrows
   protected File cleanupAndCreateDirectoryForUser(String username) {
-    var uploadDirectory = new File(this.webGoatHomeDirectory, "/PathTraversal/" + username);
+    // Sanitize username to prevent directory traversal
+    String sanitizedUsername = sanitizePathSegment(username);
+    var uploadDirectory = new File(this.webGoatHomeDirectory, "/PathTraversal/" + sanitizedUsername);
+    // Verify the resolved path is within the intended parent directory
+    File pathTraversalDir = new File(this.webGoatHomeDirectory, "/PathTraversal");
+    String parentCanonical = pathTraversalDir.getCanonicalPath();
+    String uploadCanonical = uploadDirectory.getCanonicalPath();
+    if (!uploadCanonical.startsWith(parentCanonical + File.separator) && !uploadCanonical.equals(parentCanonical)) {
+      throw new IOException("Path traversal attempt detected: " + username);
+    }
     if (uploadDirectory.exists()) {
       FileSystemUtils.deleteRecursively(uploadDirectory);
     }
@@ -75,22 +100,28 @@ public class ProfileUploadBase implements AssignmentEndpoint {
     return uploadDirectory;
   }
 
-  private boolean attemptWasMade(File expectedUploadDirectory, File uploadedFile)
-      throws IOException {
-    return !expectedUploadDirectory
-        .getCanonicalPath()
-        .equals(uploadedFile.getParentFile().getCanonicalPath());
-  }
+  /**
+   * Validates that the upload path does not escape the intended upload directory and resolves
+   * it to an absolute canonical path.
+   *
+   * @param uploadDirectory the intended upload directory
+   * @param filename the user-supplied filename
+   * @return the validated File object if safe, null if path traversal detected
+   * @throws IOException if canonicalization fails
+   */
+  private File validateAndResolveUploadPath(File uploadDirectory, String filename) throws IOException {
+    // Resolve the canonical paths to detect any traversal attempts
+    String uploadDirCanonical = uploadDirectory.getCanonicalPath();
+    File uploadedFile = new File(uploadDirectory, filename);
+    String uploadedFileCanonical = uploadedFile.getCanonicalPath();
 
-  private AttackResult solvedIt(File uploadedFile) throws IOException {
-    if (uploadedFile.getCanonicalFile().getParentFile().getName().endsWith("PathTraversal")) {
-      return success(this).build();
+    // Ensure the resolved file is within the upload directory
+    if (!uploadedFileCanonical.startsWith(uploadDirCanonical + File.separator)
+        && !uploadedFileCanonical.equals(uploadDirCanonical)) {
+      return null; // Path traversal detected
     }
-    return failed(this)
-        .attemptWasMade()
-        .feedback("path-traversal-profile-attempt")
-        .feedbackArgs(uploadedFile.getCanonicalPath())
-        .build();
+
+    return uploadedFile;
   }
 
   public ResponseEntity<?> getProfilePicture(@CurrentUsername String username) {
@@ -100,7 +131,9 @@ public class ProfileUploadBase implements AssignmentEndpoint {
   }
 
   protected byte[] getProfilePictureAsBase64(String username) {
-    var profilePictureDirectory = new File(this.webGoatHomeDirectory, "/PathTraversal/" + username);
+    // Sanitize username to prevent directory traversal
+    String sanitizedUsername = sanitizePathSegment(username);
+    var profilePictureDirectory = new File(this.webGoatHomeDirectory, "/PathTraversal/" + sanitizedUsername);
     var profileDirectoryFiles = profilePictureDirectory.listFiles();
 
     if (profileDirectoryFiles != null && profileDirectoryFiles.length > 0) {
