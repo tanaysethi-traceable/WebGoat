@@ -1,10 +1,10 @@
 == Code review (2)
 
-Same as before but now we are only removing the signature part, leaving the algorithm as is.
+Same as before but now we are only removing the signature part, leaving the algorithm as is. (Example token for educational purposes)
 
 [source]
 ----
-eyJhbGciOiJIUzI1NiJ9.ew0KICAiYWRtaW4iIDogdHJ1ZSwNCiAgImlhdCIgOiAxNTE2MjM5MDIyLA0KICAic3ViIiA6ICIxMjM0NTY3ODkwIiwNCiAgInVzZXIiIDogIkpvaG4gRG9lIg0KfQ.
+eyJhbGciOiJIUzI1NiJ9.ew0KICAiYWRtaW4iIDogdHJ1ZSwNCiAgImlhdCI6IDE1MTYyMzkwMjIsDQogICJzdWIiIDogIjEyMzQ1Njc4OTAiLA0KICAidXNlciIgOiAiSm9obiBEb2UiDQp9.
 
 {
   "alg" : "HS256"

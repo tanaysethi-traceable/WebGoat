@@ -1,6 +1,6 @@
 == Code review
 
-Now let's look at a code review and try to think on an attack with the `alg: none`, so we use the following token:
+Now let's look at a code review and try to think on an attack with the `alg: none`, so we use the following token (example token for educational purposes):
 
 [source]
 ----
