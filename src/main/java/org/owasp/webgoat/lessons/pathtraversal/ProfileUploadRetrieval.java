@@ -100,6 +100,16 @@ public class ProfileUploadRetrieval implements AssignmentEndpoint {
       var catPicture =
           new File(catPicturesDirectory, (id == null ? RandomUtils.nextInt(1, 11) : id) + ".jpg");
 
+      // Validate that the resolved file path stays within the intended directory
+      var canonicalCatDir = catPicturesDirectory.getCanonicalPath();
+      var canonicalCatPicture = catPicture.getCanonicalPath();
+
+      if (!canonicalCatPicture.startsWith(canonicalCatDir + File.separator)
+          && !canonicalCatPicture.equals(canonicalCatDir)) {
+        return ResponseEntity.badRequest()
+            .body("Invalid file path - path traversal not allowed");
+      }
+
       if (catPicture.getName().toLowerCase().contains("path-traversal-secret.jpg")) {
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType(MediaType.IMAGE_JPEG_VALUE))
