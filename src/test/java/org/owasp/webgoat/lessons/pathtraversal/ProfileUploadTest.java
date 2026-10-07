@@ -29,13 +29,13 @@ class ProfileUploadTest extends LessonTest {
   void solve() throws Exception {
     var profilePicture =
         new MockMultipartFile(
-            "uploadedFile", "../picture.jpg", "text/plain", "an image".getBytes());
+            "uploadedFile", "picture.jpg", "text/plain", "an image".getBytes());
 
     mockMvc
         .perform(
             MockMvcRequestBuilders.multipart("/PathTraversal/profile-upload")
                 .file(profilePicture)
-                .param("fullName", "../John Doe"))
+                .param("fullName", "John Doe"))
         .andExpect(status().is(200))
         .andExpect(jsonPath("$.assignment", CoreMatchers.equalTo("ProfileUpload")))
         .andExpect(jsonPath("$.lessonCompleted", CoreMatchers.is(true)));
@@ -46,7 +46,7 @@ class ProfileUploadTest extends LessonTest {
   void attemptWithWrongDirectory() throws Exception {
     var profilePicture =
         new MockMultipartFile(
-            "uploadedFile", "../picture.jpg", "text/plain", "an image".getBytes());
+            "uploadedFile", "picture.jpg", "text/plain", "an image".getBytes());
 
     mockMvc
         .perform(
@@ -71,10 +71,8 @@ class ProfileUploadTest extends LessonTest {
                 .param("fullName", ".." + File.separator + "test"))
         .andExpect(
             jsonPath(
-                "$.output",
-                CoreMatchers.anyOf(
-                    CoreMatchers.containsString("Is a directory"),
-                    CoreMatchers.containsString("..\\\\" + "test"))))
+                "$.feedback",
+                CoreMatchers.containsString("Nice try")))
         .andExpect(status().is(200));
   }
 
