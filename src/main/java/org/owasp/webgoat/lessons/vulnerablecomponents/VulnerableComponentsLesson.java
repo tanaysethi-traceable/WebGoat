@@ -27,8 +27,6 @@ public class VulnerableComponentsLesson implements AssignmentEndpoint {
     xstream.setClassLoader(Contact.class.getClassLoader());
     xstream.alias("contact", ContactImpl.class);
     xstream.ignoreUnknownElements();
-    // Security fix: restrict deserialization to safe types only
-    xstream.allowTypes(new Class[] {ContactImpl.class, Contact.class});
     Contact contact = null;
 
     try {
