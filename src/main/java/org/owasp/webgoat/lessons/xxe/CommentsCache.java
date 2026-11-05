@@ -70,9 +70,13 @@ public class CommentsCache {
     var jc = JAXBContext.newInstance(Comment.class);
     var xif = XMLInputFactory.newInstance();
 
-    // Disable XXE by default to prevent XML External Entity attacks
+    // Disable XXE to prevent XML External Entity attacks regardless of securityEnabled parameter
+    // XXE attacks must always be prevented in production code
     xif.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
     xif.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+    // Disable feature expansion to prevent XXE via feature expansion
+    xif.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
+    xif.setProperty("javax.xml.stream.supportDTD", false);
 
     var xsr = xif.createXMLStreamReader(new StringReader(xml));
 
